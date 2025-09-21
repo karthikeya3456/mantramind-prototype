@@ -88,23 +88,27 @@ export default function ManageLovedOnesPage() {
       showToast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
       return;
     }
-    
-    setIsSaving(true);
-    reset(data, { keepDirty: false }); // Optimistically mark form as not dirty
 
-    const { id: toastId, update } = showToast({
-      title: "Saving...",
-      description: "Your changes are being saved in the background.",
+    setIsSaving(true);
+    reset(data, { keepDirty: false }); // Optimistically update UI
+    
+    showToast({
+        title: "Saved!",
+        description: "Your changes have been saved.",
     });
 
     try {
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
-      update({ id: toastId, title: "Success!", description: "Your loved ones have been saved." });
     } catch (error) {
       console.error("Error saving loved ones:", error);
-      update({ id: toastId, title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
-      reset(data, { keepDirty: true });
+      showToast({
+        title: "Save Failed",
+        description: "Your changes could not be saved. Please try again.",
+        variant: "destructive",
+      });
+      // Revert optimistic update on error
+      reset(data, { keepDirty: true }); 
     } finally {
       setIsSaving(false);
     }
