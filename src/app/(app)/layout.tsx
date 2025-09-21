@@ -22,7 +22,8 @@ import {
     Wind, 
     Youtube, 
     HeartHandshake, 
-    CalendarPlus 
+    CalendarPlus,
+    Sparkles
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname } from 'next/navigation';
@@ -34,8 +35,7 @@ import { db } from '@/lib/firebase/client';
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/wellness-assistant', icon: BotMessageSquare, label: 'AI Assistant' },
-  { href: '/relax', icon: Wind, label: 'Relaxation' },
-  { href: '/entertainment', icon: Youtube, label: 'Entertainment' },
+  { href: '/relaxation-entertainment', icon: Sparkles, label: 'Relaxation & Entertainment' },
   { href: '/talk-to-loved-ones', icon: HeartHandshake, label: 'Talk to Loved Ones' },
   { href: '/appointments', icon: CalendarPlus, label: 'Appointments' },
 ];
@@ -51,15 +51,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/');
       return;
     }
-    
-    const checkK10Test = async () => {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists() || !userDoc.data().k10?.completedAt) {
-            router.push('/k10-test');
-        }
-    }
-    checkK10Test();
 
   }, [user, loading, router]);
 

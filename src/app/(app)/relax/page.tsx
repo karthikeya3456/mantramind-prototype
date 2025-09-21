@@ -1,87 +1,64 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Play, Pause, Timer, Music } from 'lucide-react';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
-const musicTracks = [
-  { id: 1, title: 'Gentle Waves', duration: '5:23', image_id: 'relax-music-1' },
-  { id: 2, title: 'Forest Whispers', duration: '4:48', image_id: 'relax-music-2' },
-  { id: 3, title: 'Sunset Serenity', duration: '6:12', image_id: 'relax-music-3' },
-];
-
-export default function RelaxPage() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold font-headline">Relaxation & Meditation</h1>
-        <p className="text-muted-foreground">
-          Find your inner peace with our curated collection of sounds and meditation tools.
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Music className="h-6 w-6" />
-            <span>Calming Music</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          {musicTracks.map((track) => {
-            const image = PlaceHolderImages.find((img) => img.id === track.image_id);
-            return (
-              <Card key={track.id} className="overflow-hidden">
-                <div className="aspect-square relative">
-                  {image && (
-                    <Image
-                      src={image.imageUrl}
-                      alt={image.description}
-                      fill
-                      className="object-cover"
-                      data-ai-hint={image.imageHint}
-                    />
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold">{track.title}</h3>
-                  <p className="text-sm text-muted-foreground">{track.duration}</p>
-                </div>
-                <CardFooter>
-                  <Button className="w-full">
-                    <Play className="mr-2 h-4 w-4" /> Play
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Timer className="h-6 w-6" />
-            <span>Meditation Timer</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
-          <div className="text-6xl font-bold font-mono text-primary">10:00</div>
-          <p className="text-muted-foreground">Set your desired meditation duration.</p>
-          <div className="flex gap-2">
-            <Button variant="outline">5 min</Button>
-            <Button>10 min</Button>
-            <Button variant="outline">15 min</Button>
-            <Button variant="outline">30 min</Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button size="lg" className="px-12 py-6 rounded-full">
-            <Play className="mr-2 h-5 w-5" />
-            Start Session
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+{
+  "placeholderImages": [
+    {
+      "id": "dashboard-k10",
+      "description": "A card showing a brain icon for the K-10 test feature.",
+      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageHint": "brain checkup"
+    },
+    {
+      "id": "dashboard-assistant",
+      "description": "A card showing a robot icon for the AI assistant feature.",
+      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageHint": "robot talking"
+    },
+    {
+      "id": "dashboard-relax-entertain",
+      "description": "A card showing a person relaxing for the relaxation and entertainment feature.",
+      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageHint": "calm meditation"
+    },
+    {
+      "id": "dashboard-loved-ones",
+      "description": "A card showing a family hugging for the Talk to Loved Ones feature.",
+      "imageUrl": "https://picsum.photos/seed/105/600/400",
+      "imageHint": "hugging family"
+    },
+    {
+      "id": "dashboard-appointments",
+      "description": "A card showing a calendar for the appointment booking feature.",
+      "imageUrl": "https://picsum.photos/seed/106/600/400",
+      "imageHint": "calendar schedule"
+    },
+    {
+      "id": "relax-music-1",
+      "description": "Cover for a calming music track.",
+      "imageUrl": "https://picsum.photos/seed/201/300/300",
+      "imageHint": "abstract waves"
+    },
+    {
+      "id": "relax-music-2",
+      "description": "Cover for a nature sounds track.",
+      "imageUrl": "https://picsum.photos/seed/202/300/300",
+      "imageHint": "forest path"
+    },
+    {
+      "id": "relax-music-3",
+      "description": "Cover for an ocean waves track.",
+      "imageUrl": "https://picsum.photos/seed/203/300/300",
+      "imageHint": "ocean sunset"
+    },
+    {
+      "id": "entertainment-video-1",
+      "description": "Thumbnail for a comedy video.",
+      "imageUrl": "https://picsum.photos/seed/301/400/225",
+      "imageHint": "standup comedy"
+    },
+    {
+      "id": "entertainment-podcast-1",
+      "description": "Thumbnail for a motivational podcast.",
+      "imageUrl": "https://picsum.photos/seed/302/400/225",
+      "imageHint": "microphone studio"
+    }
+  ]
 }

@@ -13,16 +13,10 @@
       "imageHint": "robot talking"
     },
     {
-      "id": "dashboard-relax",
-      "description": "A card showing a person meditating for the relaxation feature.",
+      "id": "dashboard-relax-entertain",
+      "description": "A card showing a person relaxing for the relaxation and entertainment feature.",
       "imageUrl": "https://picsum.photos/seed/103/600/400",
       "imageHint": "calm meditation"
-    },
-    {
-      "id": "dashboard-entertainment",
-      "description": "A card showing a laughing person for the entertainment feature.",
-      "imageUrl": "https://picsum.photos/seed/104/600/400",
-      "imageHint": "laughing person"
     },
     {
       "id": "dashboard-loved-ones",

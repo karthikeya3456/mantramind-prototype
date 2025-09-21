@@ -14,6 +14,7 @@ import {
   HeartHandshake,
   CalendarPlus,
   ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 
 const features = [
@@ -25,18 +26,11 @@ const features = [
     image_id: 'dashboard-assistant',
   },
   {
-    title: 'Relaxation',
-    description: 'Calming music and meditation.',
-    href: '/relax',
-    icon: Wind,
-    image_id: 'dashboard-relax',
-  },
-  {
-    title: 'Entertainment',
-    description: 'Uplifting videos and podcasts.',
-    href: '/entertainment',
-    icon: Youtube,
-    image_id: 'dashboard-entertainment',
+    title: 'Relax & Entertain',
+    description: 'Music, videos, and more.',
+    href: '/relaxation-entertainment',
+    icon: Sparkles,
+    image_id: 'dashboard-relax-entertain',
   },
   {
     title: 'Talk to Loved Ones',
@@ -67,7 +61,7 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">How are you feeling today? Here are some tools to support you.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {features.map((feature) => {
           const image = PlaceHolderImages.find((img) => img.id === feature.image_id);
           return (
