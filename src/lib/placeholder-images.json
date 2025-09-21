@@ -1,3 +1,70 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "dashboard-k10",
+      "description": "A card showing a brain icon for the K-10 test feature.",
+      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageHint": "brain checkup"
+    },
+    {
+      "id": "dashboard-assistant",
+      "description": "A card showing a robot icon for the AI assistant feature.",
+      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageHint": "robot talking"
+    },
+    {
+      "id": "dashboard-relax",
+      "description": "A card showing a person meditating for the relaxation feature.",
+      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageHint": "calm meditation"
+    },
+    {
+      "id": "dashboard-entertainment",
+      "description": "A card showing a laughing person for the entertainment feature.",
+      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageHint": "laughing person"
+    },
+    {
+      "id": "dashboard-loved-ones",
+      "description": "A card showing a family hugging for the Talk to Loved Ones feature.",
+      "imageUrl": "https://picsum.photos/seed/105/600/400",
+      "imageHint": "hugging family"
+    },
+    {
+      "id": "dashboard-appointments",
+      "description": "A card showing a calendar for the appointment booking feature.",
+      "imageUrl": "https://picsum.photos/seed/106/600/400",
+      "imageHint": "calendar schedule"
+    },
+    {
+      "id": "relax-music-1",
+      "description": "Cover for a calming music track.",
+      "imageUrl": "https://picsum.photos/seed/201/300/300",
+      "imageHint": "abstract waves"
+    },
+    {
+      "id": "relax-music-2",
+      "description": "Cover for a nature sounds track.",
+      "imageUrl": "https://picsum.photos/seed/202/300/300",
+      "imageHint": "forest path"
+    },
+    {
+      "id": "relax-music-3",
+      "description": "Cover for an ocean waves track.",
+      "imageUrl": "https://picsum.photos/seed/203/300/300",
+      "imageHint": "ocean sunset"
+    },
+    {
+      "id": "entertainment-video-1",
+      "description": "Thumbnail for a comedy video.",
+      "imageUrl": "https://picsum.photos/seed/301/400/225",
+      "imageHint": "standup comedy"
+    },
+    {
+      "id": "entertainment-podcast-1",
+      "description": "Thumbnail for a motivational podcast.",
+      "imageUrl": "https://picsum.photos/seed/302/400/225",
+      "imageHint": "microphone studio"
+    }
+  ]
 }
