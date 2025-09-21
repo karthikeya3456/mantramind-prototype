@@ -34,7 +34,7 @@ export function K10TestForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const { user } = useAuth();
+  const { user, refreshK10Status } = useAuth();
   const router = useRouter();
 
 
@@ -57,17 +57,21 @@ export function K10TestForm() {
       const answersAsNumbers = values.answers.map(Number);
       const userDocRef = doc(db, 'users', user.uid);
       
-      // Redirect immediately for a faster user experience.
-      router.push('/dashboard');
-
-      // Save answers and trigger AI analysis in the background.
-      setDoc(userDocRef, {
+      // Save answers to Firestore first.
+      await setDoc(userDocRef, {
         k10: {
             answers: answersAsNumbers,
             completedAt: new Date().toISOString(),
         }
       }, { merge: true });
 
+      // Refresh the auth state to reflect test completion.
+      await refreshK10Status();
+
+      // Now redirect. The app layout will have the correct state.
+      router.push('/dashboard');
+
+      // Trigger AI analysis in the background.
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
           setDoc(userDocRef, {
               k10: {
