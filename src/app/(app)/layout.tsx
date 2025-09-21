@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }
     } else if (k10TestCompleted === true) {
         if (pathname === '/k10-test') {
-            router.push('/dashboard');
+            router.push('/wellness-assistant');
         }
     }
 
@@ -77,7 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   // This protects against rendering the wrong page while redirecting.
-  if (k10TestCompleted === false && pathname !== '/k10-test') {
+  if (k10TestCompleted === false && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
       return (
         <div className="flex h-screen w-full items-center justify-center">
              <div className="flex items-center space-x-2">
