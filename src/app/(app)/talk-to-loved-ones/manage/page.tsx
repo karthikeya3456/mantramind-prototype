@@ -13,7 +13,7 @@ import { Loader2, Trash2, PlusCircle, ArrowLeft, Users, User } from 'lucide-reac
 import { useAuth } from '@/hooks/use-auth';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -46,7 +46,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function ManageLovedOnesPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { toast: showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -85,21 +85,25 @@ export default function ManageLovedOnesPage() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!user) {
-      toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+      showToast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
       return;
     }
     
     setIsSaving(true);
     reset(data, { keepDirty: false }); // Optimistically mark form as not dirty
 
+    const { id: toastId, update } = showToast({
+      title: "Saving...",
+      description: "Your changes are being saved in the background.",
+    });
+
     try {
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
-      toast({ title: "Success!", description: "Your loved ones have been saved." });
+      update({ id: toastId, title: "Success!", description: "Your loved ones have been saved." });
     } catch (error) {
       console.error("Error saving loved ones:", error);
-      toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
-      // If save fails, reset form to the data so user can try again
+      update({ id: toastId, title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
       reset(data, { keepDirty: true });
     } finally {
       setIsSaving(false);
