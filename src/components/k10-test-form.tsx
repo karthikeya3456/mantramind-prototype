@@ -128,6 +128,7 @@ export function K10TestForm() {
                         onValueChange={handleAnswerSelect}
                         value={field.value}
                         className="flex flex-col space-y-2 pt-2"
+                        key={currentQuestion}
                       >
                         {K10_OPTIONS.map((option) => (
                           <FormItem key={option.value}>
