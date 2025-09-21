@@ -89,16 +89,13 @@ export default function ManageLovedOnesPage() {
         return;
     }
     
-    // Provide immediate feedback that save has started
-    toast({ title: "Saving...", description: "Your loved ones are being saved." });
     setIsSaving(true);
+    toast({ title: "Saving...", description: "Your loved ones are being saved." });
 
     const userDocRef = doc(db, 'users', user.uid);
     setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
       .then(() => {
-        // After a successful submission, reset the form state with the new data,
-        // which makes the form "clean" (isDirty = false).
-        reset(data);
+        reset(data); // This will mark the form as not dirty
         toast({ title: "Success!", description: "Your loved ones have been saved." });
       })
       .catch((error) => {
