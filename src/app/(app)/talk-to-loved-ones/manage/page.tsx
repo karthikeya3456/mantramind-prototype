@@ -85,25 +85,24 @@ export default function ManageLovedOnesPage() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!user) {
-        toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
-        return;
+      toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+      return;
     }
     
     setIsSaving(true);
+    reset(data, { keepDirty: false }); // Optimistically mark form as not dirty
 
     try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
-        
-        // Reset form to its new state after successful save
-        reset(data, { keepDirty: false });
-        toast({ title: "Success!", description: "Your loved ones have been saved." });
-
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
+      toast({ title: "Success!", description: "Your loved ones have been saved." });
     } catch (error) {
-        console.error("Error saving loved ones:", error);
-        toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
+      console.error("Error saving loved ones:", error);
+      toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
+      // If save fails, reset form to the data so user can try again
+      reset(data, { keepDirty: true });
     } finally {
-        setIsSaving(false);
+      setIsSaving(false);
     }
   };
 
