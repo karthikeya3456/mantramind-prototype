@@ -102,7 +102,7 @@ export function K10TestForm() {
         <Card>
             <CardHeader>
                 <CardTitle>Your Results</CardTitle>
-                <CardDescription>Here is an AI-powered analysis of your answers. This information will help us personalize your experience.</CardDescription>
+                <CardDescription>Here is an AI-powered analysis of your answers. You are now ready to start your wellness journey.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <Alert>
@@ -116,7 +116,7 @@ export function K10TestForm() {
                 <p className="text-xs text-muted-foreground">Disclaimer: This is not a medical diagnosis. Please consult a healthcare professional for any health concerns.</p>
             </CardContent>
             <CardFooter>
-                 <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+                 <Button onClick={() => router.push('/wellness-assistant')}>Meet your AI Assistant</Button>
             </CardFooter>
         </Card>
     );
