@@ -89,18 +89,21 @@ export default function ManageLovedOnesPage() {
         return;
     }
     
+    // Provide immediate UI feedback
     setIsSaving(true);
-    toast({ title: "Saving...", description: "Your loved ones are being saved." });
+    reset(data); // This marks the form as not dirty and disables the save button
 
     const userDocRef = doc(db, 'users', user.uid);
     setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
       .then(() => {
-        reset(data); // This will mark the form as not dirty
         toast({ title: "Success!", description: "Your loved ones have been saved." });
       })
       .catch((error) => {
         console.error("Error saving loved ones:", error);
         toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
+        // If saving fails, reset the form with the same data to make it "dirty" again
+        // so the user can retry.
+        reset(data); 
       })
       .finally(() => {
         setIsSaving(false);
@@ -232,7 +235,7 @@ export default function ManageLovedOnesPage() {
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
             <Button type="submit" disabled={!isDirty || isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
