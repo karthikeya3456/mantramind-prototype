@@ -27,8 +27,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname } from 'next/navigation';
 import { UserNav } from '@/components/user-nav';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 
 
 const navItems = [
@@ -44,37 +42,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     if (loading) return;
-
     if (!user) {
       router.push('/');
-      return;
     }
-    
-    // Don't check for K10 if user is on the test page already.
-    if (pathname === '/k10-test') {
-        setIsVerified(true);
-        return;
-    }
+  }, [user, loading, router]);
 
-    const checkK10Status = async () => {
-      if (!user) return;
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().k10?.completedAt) {
-            setIsVerified(true);
-        } else {
-            router.push('/k10-test');
-        }
-    };
-    checkK10Status();
-
-  }, [user, loading, router, pathname]);
-
-  if (loading || !isVerified) {
+  if (loading || !user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex items-center space-x-2">

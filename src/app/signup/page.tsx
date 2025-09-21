@@ -16,6 +16,7 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (user) {
+            // New users are always sent to the K-10 test after signup.
             router.push('/k10-test');
         }
     }, [user, router]);
