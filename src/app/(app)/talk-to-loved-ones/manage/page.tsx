@@ -89,27 +89,29 @@ export default function ManageLovedOnesPage() {
         return;
     }
     
-    // Provide immediate feedback
-    toast({ title: "Success", description: "Your loved ones have been saved." });
+    // Provide immediate feedback that save has started
+    toast({ title: "Saving...", description: "Your loved ones are being saved." });
+    setIsSaving(true);
 
-    // Perform the save in the background
     const userDocRef = doc(db, 'users', user.uid);
     setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
       .then(() => {
-        // The form's dirty state is managed by react-hook-form.
-        // After a successful submission and data handling, `reset` will update the form's state,
-        // including its `isDirty` status. We pass the submitted data to reset
-        // to make it the new "clean" state.
+        // After a successful submission, reset the form state with the new data,
+        // which makes the form "clean" (isDirty = false).
         reset(data);
+        toast({ title: "Success!", description: "Your loved ones have been saved." });
       })
       .catch((error) => {
         console.error("Error saving loved ones:", error);
         toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
+      })
+      .finally(() => {
+        setIsSaving(false);
       });
   };
 
   const addLovedOne = () => {
-    append({ id: uuidv4(), name: '', relationship: '', greeting: '', characteristics: '' });
+    append({ id: uuidv4(), name: '', relationship: '', greeting: "Hello there, it's so good to hear from you.", characteristics: '' });
   };
   
   if (loading) {
@@ -232,9 +234,9 @@ export default function ManageLovedOnesPage() {
             <Button type="button" variant="outline" onClick={addLovedOne}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
-            <Button type="submit" disabled={!isDirty}>
+            <Button type="submit" disabled={!isDirty || isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
