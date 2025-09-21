@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Logo from '@/components/logo';
@@ -27,6 +27,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname } from 'next/navigation';
 import { UserNav } from '@/components/user-nav';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
 
 
 const navItems = [
@@ -42,14 +44,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/');
-    }
-  }, [user, loading, router]);
+    if (loading) return;
 
-  if (loading || !user) {
+    if (!user) {
+      router.push('/');
+      return;
+    }
+    
+    // Don't check for K10 if user is on the test page already.
+    if (pathname === '/k10-test') {
+        setIsVerified(true);
+        return;
+    }
+
+    const checkK10Status = async () => {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().k10?.completedAt) {
+            setIsVerified(true);
+        } else {
+            router.push('/k10-test');
+        }
+    };
+    checkK10Status();
+
+  }, [user, loading, router, pathname]);
+
+  if (loading || !user || !isVerified) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex items-center space-x-2">
@@ -97,7 +121,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="md:hidden"/>
             <div className="flex-1">
                 <h1 className="text-lg font-semibold font-headline">
-                    {navItems.find(item => item.href === pathname)?.label || 'Dashboard'}
+                    {navItems.find(item => item.href === pathname)?.label || 'MantraMind'}
                 </h1>
             </div>
             <UserNav />
