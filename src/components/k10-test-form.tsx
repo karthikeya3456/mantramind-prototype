@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { K10_QUESTIONS, K10_OPTIONS } from '@/lib/constants';
 import { analyzeK10TestResults } from '@/ai/flows/analyze-k10-test-results';
 import { useState } from 'react';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -96,6 +96,12 @@ export function K10TestForm() {
       }, 200);
     }
   };
+
+  const handleBack = () => {
+      if (currentQuestion > 0) {
+          setCurrentQuestion(currentQuestion - 1);
+      }
+  }
   
   const progress = ((currentQuestion + 1) / K10_QUESTIONS.length) * 100;
 
@@ -124,11 +130,13 @@ export function K10TestForm() {
                         className="flex flex-col space-y-2 pt-2"
                       >
                         {K10_OPTIONS.map((option) => (
-                          <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value={String(option.value)} id={`q${currentQuestion}-o${option.value}`} />
-                            </FormControl>
-                            <Label htmlFor={`q${currentQuestion}-o${option.value}`} className="font-normal cursor-pointer">{option.label}</Label>
+                          <FormItem key={option.value}>
+                             <Label htmlFor={`q${currentQuestion}-o${option.value}`} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border hover:bg-accent hover:border-primary/50 has-[:checked]:bg-secondary has-[:checked]:border-primary transition-colors cursor-pointer">
+                                <FormControl>
+                                  <RadioGroupItem value={String(option.value)} id={`q${currentQuestion}-o${option.value}`} />
+                                </FormControl>
+                                <span className="font-normal">{option.label}</span>
+                            </Label>
                           </FormItem>
                         ))}
                       </RadioGroup>
@@ -138,9 +146,15 @@ export function K10TestForm() {
                 )}
               />
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-between">
+            {currentQuestion > 0 && (
+                <Button type="button" variant="outline" onClick={handleBack} disabled={loading}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
+            )}
              {currentQuestion === K10_QUESTIONS.length - 1 && (
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Go to Assistant
                     <ArrowRight className="ml-2 h-4 w-4" />
