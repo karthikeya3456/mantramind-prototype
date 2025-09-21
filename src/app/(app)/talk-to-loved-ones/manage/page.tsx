@@ -46,8 +46,8 @@ type FormData = z.infer<typeof formSchema>;
 export default function ManageLovedOnesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
@@ -69,7 +69,6 @@ export default function ManageLovedOnesPage() {
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
       if (doc.exists()) {
@@ -77,7 +76,6 @@ export default function ManageLovedOnesPage() {
         reset({ lovedOnes: data.lovedOnes || [] });
       }
       setLoading(false);
-      setInitialDataLoaded(true);
     });
     return () => unsubscribe();
   }, [user, reset]);
@@ -87,7 +85,10 @@ export default function ManageLovedOnesPage() {
         toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
         return;
     }
-    setLoading(true);
+    setIsSaving(true);
+    
+    toast({ title: "Saving...", description: "Your changes are being saved in the background." });
+
     try {
         const userDocRef = doc(db, 'users', user.uid);
         await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
@@ -96,7 +97,7 @@ export default function ManageLovedOnesPage() {
         console.error("Error saving loved ones:", error);
         toast({ title: "Error", description: "Failed to save. Please try again.", variant: "destructive" });
     } finally {
-        setLoading(false);
+        setIsSaving(false);
     }
   };
 
@@ -104,7 +105,7 @@ export default function ManageLovedOnesPage() {
     append({ id: uuidv4(), name: '', relationship: '', characteristics: '' });
   };
   
-  if (!initialDataLoaded) {
+  if (loading) {
       return (
           <div className="flex h-64 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -213,8 +214,8 @@ export default function ManageLovedOnesPage() {
             <Button type="button" variant="outline" onClick={addLovedOne}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </div>
