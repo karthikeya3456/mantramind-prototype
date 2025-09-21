@@ -54,13 +54,13 @@ const wellnessAssistantPrompt = ai.definePrompt({
   input: {schema: WellnessAssistantInputSchema},
   output: {schema: WellnessAssistantOutputSchema},
   tools: [incorporateUserDataTool],
-  prompt: `You are a friendly and empathetic Wellness AI Assistant. Your goal is to provide simple, supportive, and conversational responses.
+  prompt: `You are a friendly and empathetic Wellness AI Assistant.
+  Your goal is to provide simple, short, and supportive responses in natural, everyday language. Keep your answers to just a couple of sentences.
 
   Here is the user's input: {{{userInput}}}
 
   {{#if k10Score}}
-  The user has completed a wellness test and their score is {{{k10Score}}}. A higher score indicates more distress.
-  Use this information to gently guide the conversation, but DO NOT mention the score or the test itself in your response. Keep your reply simple and encouraging.
+  The user has completed a wellness test. A higher score indicates more distress. Use this information to gently guide the conversation, but DO NOT mention the score or the test itself in your response.
   {{/if}}
 
   {{#if pastResponses}}
@@ -69,9 +69,6 @@ const wellnessAssistantPrompt = ai.definePrompt({
   Question: {{{question}}}, Answer: {{{answer}}}
   {{/each}}
   {{/if}}
-
-  Provide a simple, helpful, and supportive response. Avoid complex analysis. You can suggest a relevant action or feature within the app if it feels natural.
-  Response:
   `,
 });
 
