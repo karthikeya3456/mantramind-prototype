@@ -83,31 +83,28 @@ export default function ManageLovedOnesPage() {
     return () => unsubscribe();
   }, [user, reset]);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!user) {
         toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
         return;
     }
     
     setIsSaving(true);
-    reset(data, { keepDirty: false }); // Optimistically mark form as not-dirty
 
-    const userDocRef = doc(db, 'users', user.uid);
-    
-    // Perform the save in the background
-    setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
-      .then(() => {
+    try {
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
+        
+        // Reset form to its new state after successful save
+        reset(data, { keepDirty: false });
         toast({ title: "Success!", description: "Your loved ones have been saved." });
-      })
-      .catch((error) => {
+
+    } catch (error) {
         console.error("Error saving loved ones:", error);
         toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
-        // If saving fails, revert the form state to allow the user to try again
-        reset(data, { keepDirty: true }); 
-      })
-      .finally(() => {
+    } finally {
         setIsSaving(false);
-      });
+    }
   };
 
   const addLovedOne = () => {
@@ -235,13 +232,8 @@ export default function ManageLovedOnesPage() {
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
             <div className="flex items-center gap-4">
-                {isSaving && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Saving...</span>
-                    </div>
-                )}
                 <Button type="submit" disabled={!isDirty || isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
             </div>
