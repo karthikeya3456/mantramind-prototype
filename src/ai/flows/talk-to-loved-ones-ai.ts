@@ -11,9 +11,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const TalkToLovedOneInputSchema = z.object({
-  lovedOneDescription: z
-    .string()
-    .describe('Description of the loved one, including personality, history, and typical phrases.'),
+  lovedOne: z.object({
+    name: z.string(),
+    relationship: z.string(),
+    characteristics: z.string(),
+  }),
   userMessage: z.string().describe('The user message to send to the AI-simulated loved one.'),
 });
 export type TalkToLovedOneInput = z.infer<typeof TalkToLovedOneInputSchema>;
@@ -31,11 +33,14 @@ const prompt = ai.definePrompt({
   name: 'talkToLovedOnePrompt',
   input: {schema: TalkToLovedOneInputSchema},
   output: {schema: TalkToLovedOneOutputSchema},
-  prompt: `You are simulating a conversation with a loved one based on the following description:
-  {{{lovedOneDescription}}}
+  prompt: `You are simulating a conversation with a loved one.
 
-  Respond to the following message from the user as if you were that loved one:
-  {{{userMessage}}}`,
+  Their name is {{lovedOne.name}}.
+  Their relationship to the user is: {{lovedOne.relationship}}.
+  Here are their characteristics and traits: {{lovedOne.characteristics}}
+
+  Respond to the following message from the user as if you were that loved one. Do not break character.
+  User's message: {{{userMessage}}}`,
 });
 
 const talkToLovedOneFlow = ai.defineFlow(

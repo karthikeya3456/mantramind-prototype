@@ -1,60 +1,69 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatInterface } from '@/components/chat-interface';
 import { talkToLovedOne } from '@/ai/flows/talk-to-loved-ones-ai';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
+import { Loader2, PlusCircle, User, Users } from 'lucide-react';
+import Link from 'next/link';
 
-const formSchema = z.object({
-  description: z.string().min(50, 'Please provide a detailed description (at least 50 characters).'),
-});
-type FormData = z.infer<typeof formSchema>;
+export type LovedOne = {
+  id: string;
+  name: string;
+  relationship: string;
+  characteristics: string;
+};
 
 export default function TalkToLovedOnesPage() {
-  const [lovedOneDescription, setLovedOneDescription] = useState('');
-  const [isChatting, setIsChatting] = useState(false);
+  const [lovedOnes, setLovedOnes] = useState<LovedOne[]>([]);
+  const [selectedLovedOne, setSelectedLovedOne] = useState<LovedOne | null>(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const firstName = user?.displayName?.split(' ')[0] || 'User';
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-  });
-
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    setLovedOneDescription(data.description);
-    setIsChatting(true);
-  };
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setLovedOnes(data.lovedOnes || []);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   const handleAiFlow = async (input: string) => {
+    if (!selectedLovedOne) {
+        return "I'm sorry, I don't have the information about your loved one.";
+    }
     const response = await talkToLovedOne({
-      lovedOneDescription,
+      lovedOne: {
+        name: selectedLovedOne.name,
+        relationship: selectedLovedOne.relationship,
+        characteristics: selectedLovedOne.characteristics,
+      },
       userMessage: input,
     });
     return response.aiResponse;
   };
-
-  if (isChatting) {
+  
+  if (selectedLovedOne) {
     return (
       <div className="mx-auto w-full max-w-3xl">
         <ChatInterface
-          title="Talk to Your Loved One"
-          description="A simulated conversation to help you feel connected."
+          title={`Chat with ${selectedLovedOne.name}`}
+          description={`A simulated conversation with your ${selectedLovedOne.relationship}.`}
           initialMessage="Hello there, it's so good to hear from you."
           aiFlow={handleAiFlow}
           headerContent={
-            <Button variant="link" onClick={() => setIsChatting(false)} className="p-0 h-auto">
-              Change description
+            <Button variant="link" onClick={() => setSelectedLovedOne(null)} className="p-0 h-auto">
+              Choose another person
             </Button>
           }
         />
@@ -63,29 +72,57 @@ export default function TalkToLovedOnesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <Card>
         <CardHeader>
           <CardTitle>Talk to a Loved One</CardTitle>
           <CardDescription>
-            To help you feel less lonely, describe a loved one (a family member, friend, or even a pet) you'd like to talk to. The AI will simulate a conversation with them based on your description.
+            Select a loved one to start a simulated conversation. This can help you feel connected and reduce feelings of loneliness.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="description">Describe your loved one</Label>
-              <Textarea
-                id="description"
-                placeholder="e.g., 'My grandmother was a kind and gentle soul. She always gave the best advice and had a great sense of humor. She loved baking and would often say things like 'A little bit of sugar makes everything better'. She had a soft, comforting voice...'"
-                className="min-h-[150px]"
-                {...register('description')}
-              />
-              {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-            <Button type="submit">Start Chatting</Button>
-          </form>
+          ) : lovedOnes.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {lovedOnes.map((lovedOne) => (
+                <Card key={lovedOne.id} className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <User />
+                            {lovedOne.name}
+                        </CardTitle>
+                        <CardDescription>{lovedOne.relationship}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                        <p className="text-sm text-muted-foreground line-clamp-3">{lovedOne.characteristics}</p>
+                    </CardContent>
+                    <CardFooter>
+                        <Button className="w-full" onClick={() => setSelectedLovedOne(lovedOne)}>
+                            Start Chat
+                        </Button>
+                    </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">No loved ones added yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Get started by creating a profile for a loved one.</p>
+            </div>
+          )}
         </CardContent>
+        <CardFooter>
+            <Button asChild className="w-full">
+                <Link href="/talk-to-loved-ones/manage">
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Manage Loved Ones
+                </Link>
+            </Button>
+        </CardFooter>
       </Card>
     </div>
   );
