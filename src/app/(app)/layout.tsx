@@ -43,19 +43,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return; // Wait for auth state to load
+    // Wait for auth state and k10 status to be fully loaded
+    if (loading || k10TestCompleted === null) return;
     
     if (!user) {
       router.push('/');
       return;
     }
 
-    // This is the single source of truth for redirection logic within the app.
+    // This is now the single source of truth for redirection logic within the app.
+    // It runs only after we are sure about the user's k10TestCompleted status.
     if (k10TestCompleted === false) {
+        // If the test is not completed, the user MUST be on the k10 test page,
+        // or the profile page (for new users).
         if (pathname !== '/k10-test' && pathname !== '/welcome/profile') {
              router.push('/k10-test');
         }
     } else if (k10TestCompleted === true) {
+        // If the test IS completed, the user should NOT be on the k10 test page.
+        // Redirect them away if they try to access it.
         if (pathname === '/k10-test') {
             router.push('/wellness-assistant');
         }
@@ -63,8 +69,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   }, [user, loading, k10TestCompleted, router, pathname]);
 
-  // This loading state handles initial auth check and k10 status check.
-  // It prevents rendering the layout for a split second before redirection.
+  // This loading state handles the initial check for auth and k10 status.
+  // It prevents rendering a page for a split second before the correct redirection occurs.
   if (loading || k10TestCompleted === null || !user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
@@ -75,8 +81,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
     );
   }
-
-  // This protects against rendering the wrong page while redirecting.
+  
+  // This is an additional safeguard to prevent rendering the wrong page while redirecting.
+  // If the logic above has determined a redirect is needed, this will show a loader
+  // until the redirect completes.
   if (k10TestCompleted === false && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
       return (
         <div className="flex h-screen w-full items-center justify-center">

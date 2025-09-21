@@ -15,12 +15,15 @@ export default function SignupPage() {
     const router = useRouter();
 
     useEffect(() => {
+        // Redirect logic is handled here for new signups.
         if (user) {
-            // For new signups, always go to profile setup first, then to the test.
+            // For new signups, always go to profile setup first. The app layout
+            // will then handle the redirect to the K-10 test.
             router.push('/welcome/profile');
         }
     }, [user, router]);
     
+    // Show a loading skeleton if we are checking auth or if the user is signed in and we're redirecting.
     if (loading || user) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background p-4">

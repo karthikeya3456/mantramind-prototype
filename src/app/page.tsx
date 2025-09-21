@@ -17,14 +17,14 @@ export default function LoginPage() {
     if (loading) return; // Wait until auth state is loaded
 
     if (user) {
-      // The redirect logic is now centralized in the AppLayout
+      // The redirect logic is now centralized in the AppLayout.
       // This simply pushes to the wellness assistant, and the layout will handle
       // redirecting to the K10 test if needed.
       router.push('/wellness-assistant');
     }
   }, [user, loading, router]);
 
-  // Show a loading state while auth is being checked or if the user is logged in and redirecting
+  // Show a loading state while auth is being checked or if the user is logged in and we are redirecting.
   if (loading || user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
