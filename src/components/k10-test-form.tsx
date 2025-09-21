@@ -69,7 +69,7 @@ export function K10TestForm() {
       await refreshK10Status();
 
       // Now redirect. The app layout will have the correct state.
-      router.push('/dashboard');
+      router.push('/wellness-assistant');
 
       // Trigger AI analysis in the background.
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
@@ -170,7 +170,7 @@ export function K10TestForm() {
              {currentQuestion === K10_QUESTIONS.length - 1 && (
                 <Button type="submit" disabled={loading || !form.getValues('answers')[currentQuestion]} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Go to Dashboard
+                    Go to AI Assistant
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
