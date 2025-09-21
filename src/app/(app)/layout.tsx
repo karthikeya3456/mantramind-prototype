@@ -61,6 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     const checkK10Status = async () => {
+      if (!user) return;
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists() && userDoc.data().k10?.completedAt) {
@@ -73,7 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   }, [user, loading, router, pathname]);
 
-  if (loading || !user || !isVerified) {
+  if (loading || !isVerified) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex items-center space-x-2">

@@ -27,8 +27,8 @@ export default function LoginPage() {
             router.push('/k10-test');
           }
         } catch (error) {
-          console.error("Error checking K10 status:", error);
-          // Fallback to K10 test if there's an error
+          console.error('Error checking K10 status:', error);
+          // Fallback to K10 test if there's an error, as it's a required step.
           router.push('/k10-test');
         }
       };
