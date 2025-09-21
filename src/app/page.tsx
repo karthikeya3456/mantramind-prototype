@@ -17,17 +17,14 @@ export default function LoginPage() {
     if (loading) return; // Wait until auth state is loaded
 
     if (user) {
-      if (k10TestCompleted) {
-        router.push('/dashboard');
-      } else if (k10TestCompleted === false) {
-        // This can happen if profile is created but test is not done
-        router.push('/k10-test');
-      }
-      // if k10TestCompleted is null, it means the check is still in progress,
-      // so we wait. The effect will re-run when it changes.
+      // The redirect logic is now centralized in the AppLayout
+      // This simply pushes to the dashboard, and the layout will handle
+      // redirecting to the K10 test if needed.
+      router.push('/dashboard');
     }
-  }, [user, loading, k10TestCompleted, router]);
+  }, [user, loading, router]);
 
+  // Show a loading state while auth is being checked or if the user is logged in and redirecting
   if (loading || user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">

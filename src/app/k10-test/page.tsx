@@ -17,11 +17,14 @@ export default function K10TestPage() {
             return;
         }
 
+        // If the user has already completed the test, redirect them away from this page.
+        // This is a safeguard enforced by the AppLayout as well.
         if (k10TestCompleted === true) {
             router.push('/dashboard');
         }
     }, [user, authLoading, k10TestCompleted, router]);
 
+    // Show a loading skeleton while we're checking auth status or if test is completed and redirecting
     if (authLoading || k10TestCompleted === null || k10TestCompleted === true) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background p-4">

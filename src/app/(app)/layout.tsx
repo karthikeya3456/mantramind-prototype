@@ -43,20 +43,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) return; // Wait for auth state to load
+    
     if (!user) {
       router.push('/');
       return;
     }
 
-    if (k10TestCompleted === false && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
-        router.push('/k10-test');
-    } else if (k10TestCompleted === true && pathname === '/k10-test') {
-        router.push('/dashboard');
+    // This is the single source of truth for redirection logic within the app.
+    if (k10TestCompleted === false) {
+        if (pathname !== '/k10-test' && pathname !== '/welcome/profile') {
+             router.push('/k10-test');
+        }
+    } else if (k10TestCompleted === true) {
+        if (pathname === '/k10-test') {
+            router.push('/dashboard');
+        }
     }
 
   }, [user, loading, k10TestCompleted, router, pathname]);
 
+  // This loading state handles initial auth check and k10 status check.
+  // It prevents rendering the layout for a split second before redirection.
   if (loading || k10TestCompleted === null || !user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
@@ -67,6 +75,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
     );
   }
+
+  // This protects against rendering the wrong page while redirecting.
+  if (k10TestCompleted === false && pathname !== '/k10-test') {
+      return (
+        <div className="flex h-screen w-full items-center justify-center">
+             <div className="flex items-center space-x-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-6 w-32" />
+            </div>
+        </div>
+      );
+  }
+
 
   return (
     <SidebarProvider>
