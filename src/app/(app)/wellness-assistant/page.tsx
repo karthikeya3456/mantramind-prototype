@@ -17,7 +17,7 @@ export default function WellnessAssistantPage() {
       if (user) {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().k10) {
+        if (userDoc.exists() && userDoc.data().k10?.answers) {
           const answers = userDoc.data().k10.answers as number[];
           const score = answers.reduce((sum, current) => sum + current, 0);
           setK10Score(score);
@@ -28,7 +28,6 @@ export default function WellnessAssistantPage() {
   }, [user]);
 
   const handleAiFlow = async (input: string, pastMessages: any[]) => {
-    // We can add logic to get K-10 score here if available
     const response = await wellnessAssistant({
       userInput: input,
       k10Score: k10Score,

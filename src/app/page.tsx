@@ -8,6 +8,8 @@ import { AuthForm } from '@/components/auth-form';
 import Logo from '@/components/logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -15,7 +17,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/k10-test');
+      const checkK10Status = async () => {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().k10?.completedAt) {
+          router.push('/dashboard');
+        } else {
+          router.push('/k10-test');
+        }
+      };
+      checkK10Status();
     }
   }, [user, router]);
 

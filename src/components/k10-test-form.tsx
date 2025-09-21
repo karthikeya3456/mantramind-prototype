@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { K10_QUESTIONS, K10_OPTIONS } from '@/lib/constants';
 import { analyzeK10TestResults } from '@/ai/flows/analyze-k10-test-results';
 import { useState } from 'react';
-import { Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -54,49 +55,49 @@ export function K10TestForm() {
 
     try {
       const answersAsNumbers = values.answers.map(Number);
-      const aiResult = await analyzeK10TestResults({ answers: answersAsNumbers });
       
       // Save results to Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
         k10: {
             answers: answersAsNumbers,
-            analysis: aiResult,
             completedAt: new Date().toISOString(),
         }
       }, { merge: true });
+      
+      // Analyze results with AI in the background, but don't wait for it.
+      analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
+          setDoc(userDocRef, {
+              k10: {
+                  analysis: aiResult,
+              }
+          }, { merge: true });
+      });
 
       // Redirect to the wellness assistant
       router.push('/wellness-assistant');
 
     } catch (e) {
       console.error(e);
-      setError('An error occurred while analyzing your results. Please try again.');
+      setError('An error occurred while submitting your results. Please try again.');
       setLoading(false);
     }
   }
 
-  const handleNext = async () => {
-      const isValid = await form.trigger(`answers.${currentQuestion}`);
-      if (isValid) {
-          if (currentQuestion < K10_QUESTIONS.length - 1) {
-              setCurrentQuestion(currentQuestion + 1);
-          } else {
-              form.handleSubmit(onSubmit)();
-          }
-      }
-  };
-
-  const handleBack = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+  const handleAnswerSelect = async (value: string) => {
+    form.setValue(`answers.${currentQuestion}`, value);
+    const isValid = await form.trigger(`answers.${currentQuestion}`);
+    if (isValid) {
+      // Add a small delay for a smoother transition
+      setTimeout(() => {
+        if (currentQuestion < K10_QUESTIONS.length - 1) {
+          setCurrentQuestion(currentQuestion + 1);
+        }
+      }, 200);
     }
   };
   
-  const progress = (currentQuestion / (K10_QUESTIONS.length -1)) * 100;
+  const progress = ((currentQuestion + 1) / K10_QUESTIONS.length) * 100;
 
   return (
     <Card>
@@ -107,7 +108,7 @@ export function K10TestForm() {
         </CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-8 min-h-[300px]">
              <Progress value={progress} className="mb-8" />
              <FormField
@@ -118,7 +119,7 @@ export function K10TestForm() {
                     <FormLabel className="text-lg">{`${currentQuestion + 1}. ${K10_QUESTIONS[currentQuestion]}`}</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
+                        onValueChange={handleAnswerSelect}
                         value={field.value}
                         className="flex flex-col space-y-2 pt-2"
                       >
@@ -137,15 +138,14 @@ export function K10TestForm() {
                 )}
               />
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={handleBack} disabled={currentQuestion === 0 || loading}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back
-            </Button>
-            <Button type="button" onClick={handleNext} disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {currentQuestion < K10_QUESTIONS.length - 1 ? 'Next' : 'Go to Assistant'}
-                {currentQuestion < K10_QUESTIONS.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
+          <CardFooter className="flex justify-end">
+             {currentQuestion === K10_QUESTIONS.length - 1 && (
+                <Button type="submit" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Go to Assistant
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            )}
           </CardFooter>
         </form>
          {error && <p className="text-sm text-destructive p-6 pt-0">{error}</p>}
