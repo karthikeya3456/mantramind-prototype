@@ -8,37 +8,52 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { searchYoutubeVideos, YoutubeSearchOutput } from '@/ai/flows/youtube-search';
 
-const musicTracks = [
-  { id: 1, title: 'Gentle Waves', duration: '5:23', image_id: 'relax-music-1' },
-  { id: 2, title: 'Forest Whispers', duration: '4:48', image_id: 'relax-music-2' },
-  { id: 3, title: 'Sunset Serenity', duration: '6:12', image_id: 'relax-music-3' },
-];
-
-const motivationalPodcasts = [
-  { id: 1, title: 'The Daily Stoic', host: 'Ryan Holiday', image_id: 'entertainment-podcast-1' },
-  { id: 2, title: 'Unlocking Us', host: 'Brené Brown', image_id: 'entertainment-podcast-1' },
-  { id: 3, title: 'Feel Better, Live More', host: 'Dr Rangan Chatterjee', image_id: 'entertainment-podcast-1' },
-];
-
-
 export default function RelaxationEntertainmentPage() {
   const [comedyVideos, setComedyVideos] = useState<YoutubeSearchOutput['videos']>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
 
+  const [musicVideos, setMusicVideos] = useState<YoutubeSearchOutput['videos']>([]);
+  const [loadingMusic, setLoadingMusic] = useState(true);
+
+  const [podcastVideos, setPodcastVideos] = useState<YoutubeSearchOutput['videos']>([]);
+  const [loadingPodcasts, setLoadingPodcasts] = useState(true);
+
   useEffect(() => {
-    async function fetchVideos() {
+    async function fetchContent() {
+      // Fetch Comedy Videos
       try {
         setLoadingVideos(true);
-        const results = await searchYoutubeVideos({ query: 'funny animal videos', maxResults: 3 });
-        setComedyVideos(results.videos);
+        const comedyResults = await searchYoutubeVideos({ query: 'funny animal videos', maxResults: 3 });
+        setComedyVideos(comedyResults.videos);
       } catch (error) {
-        console.error("Failed to fetch YouTube videos:", error);
-        // Optionally, set an error state to show a message to the user
+        console.error("Failed to fetch YouTube comedy videos:", error);
       } finally {
         setLoadingVideos(false);
       }
+      
+      // Fetch Calming Music
+      try {
+        setLoadingMusic(true);
+        const musicResults = await searchYoutubeVideos({ query: 'calming meditation music', maxResults: 3 });
+        setMusicVideos(musicResults.videos);
+      } catch (error) {
+        console.error("Failed to fetch YouTube music videos:", error);
+      } finally {
+        setLoadingMusic(false);
+      }
+
+      // Fetch Motivational Podcasts
+      try {
+        setLoadingPodcasts(true);
+        const podcastResults = await searchYoutubeVideos({ query: 'motivational podcasts', maxResults: 3 });
+        setPodcastVideos(podcastResults.videos);
+      } catch (error) {
+        console.error("Failed to fetch YouTube podcast videos:", error);
+      } finally {
+        setLoadingPodcasts(false);
+      }
     }
-    fetchVideos();
+    fetchContent();
   }, []);
 
   return (
@@ -58,33 +73,39 @@ export default function RelaxationEntertainmentPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {musicTracks.map((track) => {
-            const image = PlaceHolderImages.find((img) => img.id === track.image_id);
-            return (
-              <Card key={track.id} className="overflow-hidden">
-                <div className="aspect-square relative">
-                  {image && (
+          {loadingMusic ? (
+            <div className="flex items-center justify-center col-span-3 min-h-[200px]">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            musicVideos.map((video) => (
+              <a 
+                key={video.id} 
+                href={`https://www.youtube.com/watch?v=${video.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
+                <Card className="overflow-hidden h-full">
+                  <div className="aspect-video relative">
                     <Image
-                      src={image.imageUrl}
-                      alt={image.description}
-                      fill
-                      className="object-cover"
-                      data-ai-hint={image.imageHint}
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
                     />
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold">{track.title}</h3>
-                  <p className="text-sm text-muted-foreground">{track.duration}</p>
-                </div>
-                <CardFooter>
-                  <Button className="w-full">
-                    <Play className="mr-2 h-4 w-4" /> Play
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Play className="h-12 w-12 text-white fill-white"/>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold truncate">{video.title}</h3>
+                    <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
+                  </div>
+                </Card>
+              </a>
+            ))
+          )}
         </CardContent>
       </Card>
       
@@ -140,31 +161,39 @@ export default function RelaxationEntertainmentPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {motivationalPodcasts.map((podcast) => {
-            const image = PlaceHolderImages.find((img) => img.id === podcast.image_id);
-            return (
-              <Card key={podcast.id} className="overflow-hidden group">
-                <div className="aspect-video relative">
-                  {image && (
+           {loadingPodcasts ? (
+            <div className="flex items-center justify-center col-span-3 min-h-[200px]">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            podcastVideos.map((video) => (
+              <a 
+                key={video.id} 
+                href={`https://www.youtube.com/watch?v=${video.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
+                <Card className="overflow-hidden h-full">
+                  <div className="aspect-video relative">
                     <Image
-                      src={image.imageUrl}
-                      alt={image.description}
-                      fill
-                      className="object-cover"
-                      data-ai-hint={image.imageHint}
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
                     />
-                  )}
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play className="h-12 w-12 text-white fill-white"/>
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Play className="h-12 w-12 text-white fill-white"/>
                     </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold truncate">{podcast.title}</h3>
-                  <p className="text-sm text-muted-foreground">{podcast.host}</p>
-                </div>
-              </Card>
-            );
-          })}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold truncate">{video.title}</h3>
+                    <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
+                  </div>
+                </Card>
+              </a>
+            ))
+          )}
         </CardContent>
       </Card>
       
