@@ -24,6 +24,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { useRouter } from 'next/navigation';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   answers: z.array(z.string().min(1, 'Please select an option.')).length(10, { message: 'Please answer all 10 questions.' }),
