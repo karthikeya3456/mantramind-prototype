@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/sidebar';
 import { 
     LayoutDashboard, 
-    ClipboardCheck, 
     BotMessageSquare, 
     Wind, 
     Youtube, 
@@ -32,7 +31,6 @@ import { UserNav } from '@/components/user-nav';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/k10-test', icon: ClipboardCheck, label: 'K-10 Test' },
   { href: '/wellness-assistant', icon: BotMessageSquare, label: 'AI Assistant' },
   { href: '/relax', icon: Wind, label: 'Relaxation' },
   { href: '/entertainment', icon: Youtube, label: 'Entertainment' },

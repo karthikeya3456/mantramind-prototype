@@ -18,13 +18,6 @@ import {
 
 const features = [
   {
-    title: 'K-10 Test',
-    description: 'Assess your mental well-being.',
-    href: '/k10-test',
-    icon: ClipboardCheck,
-    image_id: 'dashboard-k10',
-  },
-  {
     title: 'AI Assistant',
     description: 'Chat with our wellness bot.',
     href: '/wellness-assistant',
