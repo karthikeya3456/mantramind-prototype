@@ -18,12 +18,12 @@ const WellnessAssistantInputSchema = z.object({
   pastResponses: z
     .array(
       z.object({
-        question: z.string(),
-        answer: z.string(),
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
       })
     )
     .optional()
-    .describe('A list of past questions and answers in the conversation.'),
+    .describe('A list of past messages in the conversation.'),
 });
 export type WellnessAssistantInput = z.infer<typeof WellnessAssistantInputSchema>;
 
@@ -33,14 +33,15 @@ const WellnessAssistantOutputSchema = z.object({
     .describe('The AI assistant response to the user input.'),
   suggestedAction: z
     .enum([
-      'wellness-assistant',
       'relaxation-entertainment',
       'talk-to-loved-ones',
       'appointments',
       'none',
     ])
     .optional()
-    .describe('A suggested feature to redirect the user to.'),
+    .describe(
+      "A suggested feature to redirect the user to. Only suggest a feature if it's highly relevant to the user's message."
+    ),
 });
 export type WellnessAssistantOutput = z.infer<typeof WellnessAssistantOutputSchema>;
 
@@ -49,28 +50,30 @@ const wellnessAssistantPrompt = ai.definePrompt({
   input: {schema: WellnessAssistantInputSchema},
   output: {schema: WellnessAssistantOutputSchema},
   prompt: `You are a friendly and empathetic Wellness AI Assistant.
-  Your goal is to provide simple, short, and supportive responses in natural, everyday language. Keep your answers to just a couple of sentences.
-  Analyze the user's message and the conversation history to understand their needs.
+Your goal is to provide simple, short, and supportive responses in natural, everyday language. Keep your answers to just a couple of sentences.
+Analyze the user's message and the conversation history to understand their needs.
 
-  Based on their input, you can suggest one of the following features if it seems helpful. Only suggest one at a time.
-  - 'relaxation-entertainment': If the user seems stressed, bored, or in need of a distraction.
-  - 'talk-to-loved-ones': If the user expresses feelings of loneliness or wants to connect with someone.
-  - 'appointments': If the user expresses a need for professional help or wants to talk to a person.
-  - 'none': If no specific action is relevant, or if you are just having a general conversation.
+Based on their input, you can suggest ONE of the following features if it seems helpful.
+- 'relaxation-entertainment': Suggest if the user seems stressed, bored, or in need of a distraction.
+- 'talk-to-loved-ones': Suggest if the user expresses feelings of loneliness or wants to connect with someone.
+- 'appointments': Suggest if the user expresses a need for professional help or wants to talk to a person.
+- 'none': Default to this if no specific action is relevant, or if you are just having a general conversation.
 
-  Here is the user's input: {{{userInput}}}
+Your response should guide the user naturally. For example, if they feel lonely, you might say, "It sounds like you're feeling a bit lonely. Sometimes talking to someone familiar can help. Would you like to try talking to a loved one?" and set suggestedAction to 'talk-to-loved-ones'.
 
-  {{#if k10Score}}
-  The user has completed a wellness test. A higher score indicates more distress. Use this information to gently guide the conversation, but DO NOT mention the score or the test itself in your response.
-  {{/if}}
+Here is the user's input: {{{userInput}}}
 
-  {{#if pastResponses}}
-  Here are the past questions and answers in the conversation:
-  {{#each pastResponses}}
-  Question: {{{question}}}, Answer: {{{answer}}}
-  {{/each}}
-  {{/if}}
-  `,
+{{#if k10Score}}
+The user has completed a wellness test. A higher score indicates more distress. Use this information to gently guide the conversation, but DO NOT mention the score or the test itself in your response.
+{{/if}}
+
+{{#if pastResponses.length}}
+Here is the recent conversation history:
+{{#each pastResponses}}
+{{role}}: {{{content}}}
+{{/each}}
+{{/if}}
+`,
 });
 
 const wellnessAssistantFlow = ai.defineFlow(

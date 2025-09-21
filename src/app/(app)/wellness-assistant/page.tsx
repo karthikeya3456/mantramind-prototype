@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { useEffect, useState } from 'react';
+import type { Message } from '@/components/chat-interface';
+
 
 export default function WellnessAssistantPage() {
   const { user } = useAuth();
@@ -27,16 +29,16 @@ export default function WellnessAssistantPage() {
     fetchK10Score();
   }, [user]);
 
-  const handleAiFlow = async (input: string, pastMessages: any[]) => {
+  const handleAiFlow = async (input: string, pastMessages: Message[]) => {
     // Take the last 4 messages (2 user, 2 assistant) for context.
     const recentHistory = pastMessages.slice(-4);
     
     const response = await wellnessAssistant({
       userInput: input,
       k10Score: k10Score,
-      pastResponses: recentHistory.map(m => ({ question: m.role, answer: m.content })),
+      pastResponses: recentHistory,
     });
-    // The chat interface now expects the full object to handle suggested actions.
+    
     return response;
   };
 

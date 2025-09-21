@@ -4,24 +4,45 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, Wind, HeartHandshake, CalendarPlus, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
+import Link from 'next/link';
 
-type Message = {
+type SuggestedAction = 'relaxation-entertainment' | 'talk-to-loved-ones' | 'appointments' | 'none';
+
+export type Message = {
   role: 'user' | 'assistant';
   content: string;
+  suggestedAction?: SuggestedAction;
 };
 
 type ChatInterfaceProps = {
   title: string;
   description: string;
   initialMessage: string;
-  // A function that takes user input and past messages, and returns the AI's response.
   aiFlow: (input: string, pastMessages: Message[]) => Promise<any>;
   headerContent?: React.ReactNode;
+};
+
+const actionConfig = {
+  'relaxation-entertainment': {
+    href: '/relaxation-entertainment',
+    label: 'Explore Relaxation & Entertainment',
+    icon: <Sparkles className="mr-2 h-4 w-4" />,
+  },
+  'talk-to-loved-ones': {
+    href: '/talk-to-loved-ones',
+    label: 'Talk to a Loved One',
+    icon: <HeartHandshake className="mr-2 h-4 w-4" />,
+  },
+  'appointments': {
+    href: '/appointments',
+    label: 'Book an Appointment',
+    icon: <CalendarPlus className="mr-2 h-4 w-4" />,
+  },
 };
 
 export function ChatInterface({ title, description, initialMessage, aiFlow, headerContent }: ChatInterfaceProps) {
@@ -32,7 +53,6 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Find the viewport element within the ScrollArea
     const viewport = scrollAreaRef.current?.querySelector<HTMLDivElement>(':scope > div');
     if (viewport) {
       viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
@@ -51,16 +71,12 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
 
     try {
       const aiResult = await aiFlow(input, newMessages);
-
-      const aiResponse = typeof aiResult === 'string' ? aiResult : aiResult.response;
-      
-      setMessages((prev) => [...prev, { role: 'assistant', content: aiResponse }]);
-
-      // Here you could handle the suggestedAction, e.g. show a button or link
-      if (aiResult.suggestedAction && aiResult.suggestedAction !== 'none') {
-        console.log("Suggested Action:", aiResult.suggestedAction);
-      }
-
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: aiResult.response,
+        suggestedAction: aiResult.suggestedAction !== 'none' ? aiResult.suggestedAction : undefined,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error(error);
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
@@ -88,41 +104,54 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
       <CardContent className="flex-1 overflow-hidden">
         <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : '')}
-              >
-                {message.role === 'assistant' && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>AI</AvatarFallback>
-                  </Avatar>
-                )}
+            {messages.map((message, index) => {
+              const action = message.suggestedAction && actionConfig[message.suggestedAction];
+              return (
                 <div
-                  className={cn(
-                    'max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 text-sm',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground'
-                  )}
+                  key={index}
+                  className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : '')}
                 >
-                  {message.content}
+                  {message.role === 'assistant' && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>AI</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className="flex flex-col gap-2 items-start">
+                    <div
+                      className={cn(
+                        'max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 text-sm',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-secondary-foreground'
+                      )}
+                    >
+                      {message.content}
+                    </div>
+                    {action && (
+                      <Button asChild variant="outline" size="sm" className="max-w-xs md:max-w-md lg:max-w-lg">
+                        <Link href={action.href}>
+                          {action.icon}
+                          {action.label}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                  {message.role === 'user' && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.photoURL || ''} />
+                      <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
-                 {message.role === 'user' && (
-                   <Avatar className="h-8 w-8">
-                     <AvatarImage src={user?.photoURL || ''} />
-                     <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
-                   </Avatar>
-                 )}
-              </div>
-            ))}
+              );
+            })}
             {loading && (
               <div className="flex items-start gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>AI</AvatarFallback>
                 </Avatar>
                 <div className="bg-secondary rounded-lg px-4 py-2 text-sm flex items-center">
-                    <Loader2 className="h-4 w-4 animate-spin"/>
+                  <Loader2 className="h-4 w-4 animate-spin"/>
                 </div>
               </div>
             )}
