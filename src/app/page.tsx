@@ -18,8 +18,8 @@ export default function LoginPage() {
 
     if (user) {
       // The redirect logic is now centralized in the AppLayout.
-      // This simply pushes to the wellness assistant, and the layout will handle
-      // redirecting to the K10 test if needed.
+      // This simply pushes to the AI assistant page. The layout will then handle
+      // redirecting to the K10 test if it's not completed.
       router.push('/wellness-assistant');
     }
   }, [user, loading, router]);

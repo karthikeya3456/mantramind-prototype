@@ -43,33 +43,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait for auth state and k10 status to be fully loaded
+    // Wait until authentication and K10 status are fully loaded.
     if (loading || k10TestCompleted === null) return;
     
+    // If there's no user, send them to the login page.
     if (!user) {
       router.push('/');
       return;
     }
 
-    // This is now the single source of truth for redirection logic within the app.
-    // It runs only after we are sure about the user's k10TestCompleted status.
+    // This is the single source of truth for redirection logic within the app.
+    // It runs only after we are sure about the user's authentication and k10TestCompleted status.
     if (k10TestCompleted === false) {
         // If the test is not completed, the user MUST be on the k10 test page,
-        // or the profile page (for new users).
+        // or the profile page (for new users). Force redirect if they are not.
         if (pathname !== '/k10-test' && pathname !== '/welcome/profile') {
              router.push('/k10-test');
         }
     } else if (k10TestCompleted === true) {
-        // If the test IS completed, the user should NOT be on the k10 test page.
-        // Redirect them away if they try to access it.
-        if (pathname === '/k10-test') {
+        // If the test IS completed, the user should NOT be on the k10 test or profile page.
+        // Redirect them away if they try to access these pages.
+        if (pathname === '/k10-test' || pathname === '/welcome/profile') {
             router.push('/wellness-assistant');
         }
     }
 
   }, [user, loading, k10TestCompleted, router, pathname]);
 
-  // This loading state handles the initial check for auth and k10 status.
+  // This loading state handles the initial check for auth and K10 status.
   // It prevents rendering a page for a split second before the correct redirection occurs.
   if (loading || k10TestCompleted === null || !user) {
     return (
@@ -83,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
   
   // This is an additional safeguard to prevent rendering the wrong page while redirecting.
-  // If the logic above has determined a redirect is needed, this will show a loader
+  // If the logic above has determined a redirect to the test is needed, this will show a loader
   // until the redirect completes.
   if (k10TestCompleted === false && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
       return (

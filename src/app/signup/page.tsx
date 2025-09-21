@@ -18,7 +18,7 @@ export default function SignupPage() {
         // Redirect logic is handled here for new signups.
         if (user) {
             // For new signups, always go to profile setup first. The app layout
-            // will then handle the redirect to the K-10 test.
+            // will then handle the subsequent redirect to the K-10 test.
             router.push('/welcome/profile');
         }
     }, [user, router]);
