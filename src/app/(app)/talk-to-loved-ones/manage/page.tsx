@@ -89,11 +89,12 @@ export default function ManageLovedOnesPage() {
         return;
     }
     
-    // Provide immediate UI feedback
     setIsSaving(true);
-    reset(data); // This marks the form as not dirty and disables the save button
+    reset(data); // Optimistically mark form as not-dirty
 
     const userDocRef = doc(db, 'users', user.uid);
+    
+    // Perform the save in the background
     setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
       .then(() => {
         toast({ title: "Success!", description: "Your loved ones have been saved." });
@@ -101,8 +102,7 @@ export default function ManageLovedOnesPage() {
       .catch((error) => {
         console.error("Error saving loved ones:", error);
         toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
-        // If saving fails, reset the form with the same data to make it "dirty" again
-        // so the user can retry.
+        // If saving fails, revert the form state to allow the user to try again
         reset(data); 
       })
       .finally(() => {
