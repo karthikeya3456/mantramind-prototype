@@ -63,27 +63,32 @@ export function K10TestForm() {
         }
       }, { merge: true });
       
-      // Analyze results in the background, but don't wait for it
+      // Redirect immediately for a faster user experience.
+      router.push('/wellness-assistant');
+
+      // Analyze results in the background.
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
           setDoc(userDocRef, {
               k10: {
                   analysis: aiResult,
               }
           }, { merge: true });
+      }).catch(e => {
+        // Log error if background analysis fails.
+        console.error("Error analyzing K-10 results in background:", e);
       });
-
-      router.push('/wellness-assistant');
 
     } catch (e) {
       console.error(e);
       setError('An error occurred while submitting your results. Please try again.');
       setLoading(false);
+       // If saving answers fails, don't redirect and show error.
+      router.refresh(); 
     }
   }
 
-  const handleAnswerSelect = async (value: string) => {
+  const handleAnswerSelect = (value: string) => {
     form.setValue(`answers.${currentQuestion}`, value, { shouldValidate: true });
-    // This delay gives a moment for the user to see their selection before moving on.
     setTimeout(() => {
       if (currentQuestion < K10_QUESTIONS.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
