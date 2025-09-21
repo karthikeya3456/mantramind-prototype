@@ -28,10 +28,13 @@ export default function WellnessAssistantPage() {
   }, [user]);
 
   const handleAiFlow = async (input: string, pastMessages: any[]) => {
+    // Take the last 4 messages (2 user, 2 assistant) for context.
+    const recentHistory = pastMessages.slice(-4);
+    
     const response = await wellnessAssistant({
       userInput: input,
       k10Score: k10Score,
-      pastResponses: pastMessages.map(m => ({ question: m.role, answer: m.content })),
+      pastResponses: recentHistory.map(m => ({ question: m.role, answer: m.content })),
     });
     // The chat interface now expects the full object to handle suggested actions.
     return response;

@@ -32,8 +32,10 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    // Find the viewport element within the ScrollArea
+    const viewport = scrollAreaRef.current?.querySelector<HTMLDivElement>(':scope > div');
+    if (viewport) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -42,13 +44,13 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
 
     try {
-      const pastMessages = [...messages, userMessage];
-      const aiResult = await aiFlow(input, pastMessages);
+      const aiResult = await aiFlow(input, newMessages);
 
       const aiResponse = typeof aiResult === 'string' ? aiResult : aiResult.response;
       
