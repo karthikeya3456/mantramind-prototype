@@ -75,7 +75,7 @@ export default function ManageLovedOnesPage() {
       if (doc.exists()) {
         const data = doc.data();
         if (data.lovedOnes) {
-            reset({ lovedOnes: data.lovedOnes });
+            reset({ lovedOnes: data.lovedOnes }, { keepDirty: false });
         }
       }
       setLoading(false);
@@ -90,7 +90,7 @@ export default function ManageLovedOnesPage() {
     }
     
     setIsSaving(true);
-    reset(data); // Optimistically mark form as not-dirty
+    reset(data, { keepDirty: false }); // Optimistically mark form as not-dirty
 
     const userDocRef = doc(db, 'users', user.uid);
     
@@ -103,7 +103,7 @@ export default function ManageLovedOnesPage() {
         console.error("Error saving loved ones:", error);
         toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
         // If saving fails, revert the form state to allow the user to try again
-        reset(data); 
+        reset(data, { keepDirty: true }); 
       })
       .finally(() => {
         setIsSaving(false);
@@ -230,14 +230,21 @@ export default function ManageLovedOnesPage() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
             <Button type="button" variant="outline" onClick={addLovedOne}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
-            <Button type="submit" disabled={!isDirty || isSaving}>
-              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
+            <div className="flex items-center gap-4">
+                {isSaving && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Saving...</span>
+                    </div>
+                )}
+                <Button type="submit" disabled={!isDirty || isSaving}>
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+            </div>
           </div>
         </form>
     </div>
