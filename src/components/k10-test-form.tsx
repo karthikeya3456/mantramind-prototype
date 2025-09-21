@@ -17,26 +17,39 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { K10_QUESTIONS, K10_OPTIONS } from '@/lib/constants';
 import { analyzeK10TestResults, AnalyzeK10TestResultsOutput } from '@/ai/flows/analyze-k10-test-results';
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Progress } from './ui/progress';
+import { useAuth } from '@/hooks/use-auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
-  answers: z.array(z.string()).length(10, { message: 'Please answer all 10 questions.' }),
+  answers: z.array(z.string().min(1, 'Please select an option.')).length(10, { message: 'Please answer all 10 questions.' }),
 });
 
 export function K10TestForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalyzeK10TestResultsOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const { user } = useAuth();
+  const router = useRouter();
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      answers: [],
+      answers: Array(10).fill(''),
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      setError('You must be logged in to submit your results.');
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
@@ -45,6 +58,17 @@ export function K10TestForm() {
       const answersAsNumbers = values.answers.map(Number);
       const aiResult = await analyzeK10TestResults({ answers: answersAsNumbers });
       setResult(aiResult);
+      
+      // Save results to Firestore
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        k10: {
+            answers: answersAsNumbers,
+            analysis: aiResult,
+            completedAt: new Date().toISOString(),
+        }
+      }, { merge: true });
+
     } catch (e) {
       console.error(e);
       setError('An error occurred while analyzing your results. Please try again.');
@@ -53,12 +77,31 @@ export function K10TestForm() {
     }
   }
 
+  const handleNext = async () => {
+      const isValid = await form.trigger(`answers.${currentQuestion}`);
+      if (isValid) {
+          if (currentQuestion < K10_QUESTIONS.length - 1) {
+              setCurrentQuestion(currentQuestion + 1);
+          } else {
+              form.handleSubmit(onSubmit)();
+          }
+      }
+  };
+
+  const handleBack = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+  
+  const progress = (currentQuestion / (K10_QUESTIONS.length -1)) * 100;
+
   if (result) {
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Your Results</CardTitle>
-                <CardDescription>Here is an AI-powered analysis of your answers.</CardDescription>
+                <CardDescription>Here is an AI-powered analysis of your answers. This information will help us personalize your experience.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <Alert>
@@ -72,7 +115,7 @@ export function K10TestForm() {
                 <p className="text-xs text-muted-foreground">Disclaimer: This is not a medical diagnosis. Please consult a healthcare professional for any health concerns.</p>
             </CardContent>
             <CardFooter>
-                 <Button onClick={() => { setResult(null); form.reset(); }}>Take the test again</Button>
+                 <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
             </CardFooter>
         </Card>
     );
@@ -81,34 +124,33 @@ export function K10TestForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>K-10 Psychological Test</CardTitle>
+        <CardTitle>Let's get to know you</CardTitle>
         <CardDescription>
-          Answer the following questions based on how you have been feeling over the past 4 weeks.
+          This quick scientific psychological test will help us understand your current well-being. Please answer based on how you have been feeling over the past 4 weeks.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-8">
-            {K10_QUESTIONS.map((question, index) => (
-              <FormField
-                key={index}
+        <form onSubmit={(e) => e.preventDefault()}>
+          <CardContent className="space-y-8 min-h-[300px]">
+             <Progress value={progress} className="mb-8" />
+             <FormField
                 control={form.control}
-                name={`answers.${index}`}
+                name={`answers.${currentQuestion}`}
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>{`${index + 1}. ${question}`}</FormLabel>
+                    <FormLabel className="text-lg">{`${currentQuestion + 1}. ${K10_QUESTIONS[currentQuestion]}`}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
+                        value={field.value}
+                        className="flex flex-col space-y-2 pt-2"
                       >
                         {K10_OPTIONS.map((option) => (
                           <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value={String(option.value)} />
+                              <RadioGroupItem value={String(option.value)} id={`q${currentQuestion}-o${option.value}`} />
                             </FormControl>
-                            <FormLabel className="font-normal">{option.label}</FormLabel>
+                            <Label htmlFor={`q${currentQuestion}-o${option.value}`} className="font-normal cursor-pointer">{option.label}</Label>
                           </FormItem>
                         ))}
                       </RadioGroup>
@@ -117,17 +159,19 @@ export function K10TestForm() {
                   </FormItem>
                 )}
               />
-            ))}
           </CardContent>
-          <CardFooter className="flex-col items-start gap-4">
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Analyzing...' : 'Get My Results'}
+          <CardFooter className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleBack} disabled={currentQuestion === 0 || loading}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <FormMessage>{form.formState.errors.answers?.message}</FormMessage>
+            <Button type="button" onClick={handleNext} disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {currentQuestion < K10_QUESTIONS.length - 1 ? 'Next' : 'Get My Results'}
+                {currentQuestion < K10_QUESTIONS.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
           </CardFooter>
         </form>
+         {error && <p className="text-sm text-destructive p-6 pt-0">{error}</p>}
       </Form>
     </Card>
   );
