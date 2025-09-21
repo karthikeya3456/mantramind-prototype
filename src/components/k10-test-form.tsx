@@ -72,7 +72,7 @@ export function K10TestForm() {
           }, { merge: true });
       });
 
-      router.push('/wellness-assistant');
+      router.push('/dashboard');
 
     } catch (e) {
       console.error(e);
@@ -153,7 +153,7 @@ export function K10TestForm() {
              {currentQuestion === K10_QUESTIONS.length - 1 && form.getValues('answers')[currentQuestion] && (
                 <Button type="submit" disabled={loading} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Go to Assistant
+                    Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}

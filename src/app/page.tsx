@@ -8,8 +8,6 @@ import { AuthForm } from '@/components/auth-form';
 import Logo from '@/components/logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -17,22 +15,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      const checkK10Status = async () => {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists() && userDoc.data().k10?.completedAt) {
-            router.push('/dashboard');
-          } else {
-            router.push('/k10-test');
-          }
-        } catch (error) {
-          console.error('Error checking K10 status:', error);
-          // Fallback to K10 test if there's an error, as it's a required step.
-          router.push('/k10-test');
-        }
-      };
-      checkK10Status();
+      router.push('/k10-test');
     }
   }, [user, router]);
 
