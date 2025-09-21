@@ -33,6 +33,26 @@ type AuthFormProps = {
   mode: 'login' | 'signup';
 };
 
+// This function will be called from the login page for test accounts
+export const onTestAccountLogin = async (email: string, password: string) => {
+  try {
+    // First, try to sign in.
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error: any) {
+    // If the user doesn't exist, create it.
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Let's create a default name for the test user.
+      const name = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      await updateProfile(userCredential.user, { displayName: name });
+    } else {
+      // For other errors, re-throw them to be handled by the caller.
+      throw error;
+    }
+  }
+};
+
+
 export function AuthForm({ mode }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const schema = mode === 'login' ? loginSchema : signupSchema;
