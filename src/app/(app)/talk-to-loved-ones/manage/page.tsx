@@ -82,23 +82,23 @@ export default function ManageLovedOnesPage() {
     return () => unsubscribe();
   }, [user, reset]);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!user) {
         toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
         return;
     }
     
-    // Provide immediate feedback to the user
-    toast({ title: "Success", description: "Your loved ones have been saved." });
-    
-    // Perform the save operation in the background
-    const userDocRef = doc(db, 'users', user.uid);
-    setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
-        .catch((error: any) => {
-            console.error("Error saving loved ones in background:", error);
-            // Optionally, inform the user if the background save failed
-            toast({ title: "Save Failed", description: "Your changes could not be saved in the background. Please try again.", variant: "destructive" });
-        });
+    setIsSaving(true);
+    try {
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
+        toast({ title: "Success", description: "Your loved ones have been saved." });
+    } catch (error) {
+        console.error("Error saving loved ones:", error);
+        toast({ title: "Save Failed", description: "Your changes could not be saved. Please try again.", variant: "destructive" });
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const addLovedOne = () => {
@@ -214,7 +214,8 @@ export default function ManageLovedOnesPage() {
             <Button type="button" variant="outline" onClick={addLovedOne}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
-            <Button type="submit" disabled={!isDirty}>
+            <Button type="submit" disabled={isSaving || !isDirty}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </div>
