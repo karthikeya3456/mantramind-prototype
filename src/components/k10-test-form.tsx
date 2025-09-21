@@ -15,10 +15,9 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { K10_QUESTIONS, K10_OPTIONS } from '@/lib/constants';
-import { analyzeK10TestResults, AnalyzeK10TestResultsOutput } from '@/ai/flows/analyze-k10-test-results';
+import { analyzeK10TestResults } from '@/ai/flows/analyze-k10-test-results';
 import { useState } from 'react';
 import { Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Progress } from './ui/progress';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -32,7 +31,6 @@ const formSchema = z.object({
 
 export function K10TestForm() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalyzeK10TestResultsOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const { user } = useAuth();
@@ -53,16 +51,17 @@ export function K10TestForm() {
     }
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
       const answersAsNumbers = values.answers.map(Number);
       const aiResult = await analyzeK10TestResults({ answers: answersAsNumbers });
-      setResult(aiResult);
       
       // Save results to Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
         k10: {
             answers: answersAsNumbers,
             analysis: aiResult,
@@ -70,10 +69,12 @@ export function K10TestForm() {
         }
       }, { merge: true });
 
+      // Redirect to the wellness assistant
+      router.push('/wellness-assistant');
+
     } catch (e) {
       console.error(e);
       setError('An error occurred while analyzing your results. Please try again.');
-    } finally {
       setLoading(false);
     }
   }
@@ -96,31 +97,6 @@ export function K10TestForm() {
   };
   
   const progress = (currentQuestion / (K10_QUESTIONS.length -1)) * 100;
-
-  if (result) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Your Results</CardTitle>
-                <CardDescription>Here is an AI-powered analysis of your answers. You are now ready to start your wellness journey.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <Alert>
-                    <AlertTitle>Mental State Analysis</AlertTitle>
-                    <AlertDescription>{result.mentalState}</AlertDescription>
-                </Alert>
-                <Alert>
-                    <AlertTitle>Personalized Advice</AlertTitle>
-                    <AlertDescription>{result.advice}</AlertDescription>
-                </Alert>
-                <p className="text-xs text-muted-foreground">Disclaimer: This is not a medical diagnosis. Please consult a healthcare professional for any health concerns.</p>
-            </CardContent>
-            <CardFooter>
-                 <Button onClick={() => router.push('/wellness-assistant')}>Meet your AI Assistant</Button>
-            </CardFooter>
-        </Card>
-    );
-  }
 
   return (
     <Card>
@@ -167,7 +143,7 @@ export function K10TestForm() {
             </Button>
             <Button type="button" onClick={handleNext} disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {currentQuestion < K10_QUESTIONS.length - 1 ? 'Next' : 'Get My Results'}
+                {currentQuestion < K10_QUESTIONS.length - 1 ? 'Next' : 'Go to Assistant'}
                 {currentQuestion < K10_QUESTIONS.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </CardFooter>
