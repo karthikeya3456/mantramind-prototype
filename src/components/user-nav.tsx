@@ -41,15 +41,16 @@ export function UserNav() {
   
   const handleDeleteAccount = async () => {
     if (!user) return;
-    try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await deleteDoc(userDocRef);
-        await deleteUser(user);
-        router.push('/');
-    } catch (error) {
-        console.error("Error deleting account", error);
-        // Handle specific errors like 'auth/requires-recent-login'
-    }
+
+    const userDocRef = doc(db, 'users', user.uid);
+    // Kick off both delete operations in parallel for a faster response.
+    await Promise.all([
+        deleteDoc(userDocRef),
+        deleteUser(user),
+    ]);
+
+    // Navigate only after both are complete.
+    router.push('/');
   }
 
   return (
