@@ -27,6 +27,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname } from 'next/navigation';
 import { UserNav } from '@/components/user-nav';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
 
 
 const navItems = [
@@ -47,7 +49,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (loading) return;
     if (!user) {
       router.push('/');
+      return;
     }
+    
+    const checkK10Test = async () => {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists() || !userDoc.data().k10?.completedAt) {
+            router.push('/k10-test');
+        }
+    }
+    checkK10Test();
+
   }, [user, loading, router]);
 
   if (loading || !user) {

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,6 +63,7 @@ export function K10TestForm() {
         }
       }, { merge: true });
       
+      // Analyze results in the background, but don't wait for it
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
           setDoc(userDocRef, {
               k10: {
@@ -72,7 +72,7 @@ export function K10TestForm() {
           }, { merge: true });
       });
 
-      router.push('/dashboard');
+      router.push('/wellness-assistant');
 
     } catch (e) {
       console.error(e);
@@ -82,15 +82,13 @@ export function K10TestForm() {
   }
 
   const handleAnswerSelect = async (value: string) => {
-    form.setValue(`answers.${currentQuestion}`, value);
-    const isValid = await form.trigger(`answers.${currentQuestion}`);
-    if (isValid) {
-      setTimeout(() => {
-        if (currentQuestion < K10_QUESTIONS.length - 1) {
-          setCurrentQuestion(currentQuestion + 1);
-        }
-      }, 200);
-    }
+    form.setValue(`answers.${currentQuestion}`, value, { shouldValidate: true });
+    // This delay gives a moment for the user to see their selection before moving on.
+    setTimeout(() => {
+      if (currentQuestion < K10_QUESTIONS.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
+      }
+    }, 200);
   };
 
   const handleBack = () => {
@@ -123,7 +121,7 @@ export function K10TestForm() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={handleAnswerSelect}
-                        value={currentAnswer}
+                        value={field.value}
                         className="flex flex-col space-y-2 pt-2"
                       >
                         {K10_OPTIONS.map((option) => (
@@ -153,7 +151,7 @@ export function K10TestForm() {
              {currentQuestion === K10_QUESTIONS.length - 1 && form.getValues('answers')[currentQuestion] && (
                 <Button type="submit" disabled={loading} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Go to Dashboard
+                    Go to Assistant
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
