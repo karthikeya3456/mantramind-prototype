@@ -15,7 +15,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { ChromeIcon } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -35,6 +35,7 @@ type AuthFormProps = {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const schema = mode === 'login' ? loginSchema : signupSchema;
   type FormData = z.infer<typeof schema>;
 
@@ -52,6 +53,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (mode === 'signup' && 'name' in data) {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         await updateProfile(userCredential.user, { displayName: data.name });
+        // After signup, user is automatically logged in. Redirect is handled by the page.
       } else {
         await signInWithEmailAndPassword(auth, data.email, data.password);
       }
