@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,16 +55,18 @@ export function K10TestForm() {
 
     try {
       const answersAsNumbers = values.answers.map(Number);
-      
       const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, {
+      
+      // Redirect immediately for a faster user experience.
+      router.push('/wellness-assistant');
+
+      // Save answers and trigger AI analysis in the background.
+      setDoc(userDocRef, {
         k10: {
             answers: answersAsNumbers,
             completedAt: new Date().toISOString(),
         }
       }, { merge: true });
-      
-      router.push('/wellness-assistant');
 
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
           setDoc(userDocRef, {
@@ -79,7 +82,6 @@ export function K10TestForm() {
       console.error(e);
       setError('An error occurred while submitting your results. Please try again.');
       setLoading(false);
-      router.refresh(); 
     }
   }
 
