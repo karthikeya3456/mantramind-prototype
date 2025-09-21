@@ -23,7 +23,7 @@ export default function RelaxationEntertainmentPage() {
       // Fetch Comedy Videos
       try {
         setLoadingVideos(true);
-        const comedyResults = await searchYoutubeVideos({ query: 'funny animal videos', maxResults: 3 });
+        const comedyResults = await searchYoutubeVideos({ query: 'stand up comedy', maxResults: 3 });
         setComedyVideos(comedyResults.videos);
       } catch (error) {
         console.error("Failed to fetch YouTube comedy videos:", error);
