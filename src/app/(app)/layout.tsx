@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Logo from '@/components/logo';
@@ -28,9 +28,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname } from 'next/navigation';
 import { UserNav } from '@/components/user-nav';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
-
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -41,10 +38,9 @@ const navItems = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, k10TestCompleted } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [testCompleted, setTestCompleted] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -53,28 +49,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const checkTestCompletion = async () => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        const hasCompletedTest = userDoc.exists() && !!userDoc.data().k10?.answers;
-        setTestCompleted(hasCompletedTest);
+    if (k10TestCompleted === false && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
+        router.push('/k10-test');
+    } else if (k10TestCompleted === true && pathname === '/k10-test') {
+        router.push('/dashboard');
+    }
 
-        if (pathname === '/k10-test' && hasCompletedTest) {
-          router.push('/dashboard');
-        } else if (!hasCompletedTest && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
-           // If test is not completed, they should be on k10-test page or profile page.
-           // This prevents access to other pages before completing the test.
-           router.push('/k10-test');
-        }
-      }
-    };
+  }, [user, loading, k10TestCompleted, router, pathname]);
 
-    checkTestCompletion();
-
-  }, [user, loading, router, pathname]);
-
-  if (loading || testCompleted === null || !user) {
+  if (loading || k10TestCompleted === null || !user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex items-center space-x-2">

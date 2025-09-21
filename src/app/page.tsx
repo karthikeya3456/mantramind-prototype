@@ -8,32 +8,25 @@ import { AuthForm } from '@/components/auth-form';
 import Logo from '@/components/logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 
 export default function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, k10TestCompleted } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const checkTestAndRedirect = async () => {
-      if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
-        try {
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists() && userDoc.data().k10?.answers) {
-            router.push('/dashboard');
-          } else {
-            router.push('/k10-test');
-          }
-        } catch (error) {
-          console.error("Error checking user document:", error);
-          router.push('/k10-test');
-        }
+    if (loading) return; // Wait until auth state is loaded
+
+    if (user) {
+      if (k10TestCompleted) {
+        router.push('/dashboard');
+      } else if (k10TestCompleted === false) {
+        // This can happen if profile is created but test is not done
+        router.push('/k10-test');
       }
-    };
-    checkTestAndRedirect();
-  }, [user, router]);
+      // if k10TestCompleted is null, it means the check is still in progress,
+      // so we wait. The effect will re-run when it changes.
+    }
+  }, [user, loading, k10TestCompleted, router]);
 
   if (loading || user) {
     return (

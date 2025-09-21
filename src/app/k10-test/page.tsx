@@ -2,16 +2,13 @@
 
 import { K10TestForm } from '@/components/k10-test-form';
 import { useAuth } from '@/hooks/use-auth';
-import { db } from '@/lib/firebase/client';
-import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function K10TestPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, k10TestCompleted } = useAuth();
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (authLoading) return;
@@ -20,20 +17,12 @@ export default function K10TestPage() {
             return;
         }
 
-        const checkTestCompletion = async () => {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists() && userDoc.data().k10?.answers) {
-                router.push('/dashboard');
-            } else {
-                setLoading(false);
-            }
-        };
+        if (k10TestCompleted === true) {
+            router.push('/dashboard');
+        }
+    }, [user, authLoading, k10TestCompleted, router]);
 
-        checkTestCompletion();
-    }, [user, authLoading, router]);
-
-    if (loading || authLoading) {
+    if (authLoading || k10TestCompleted === null || k10TestCompleted === true) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background p-4">
                 <div className="w-full max-w-2xl space-y-4">
