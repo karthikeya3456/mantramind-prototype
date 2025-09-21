@@ -33,13 +33,14 @@ export default function WellnessAssistantPage() {
       k10Score: k10Score,
       pastResponses: pastMessages.map(m => ({ question: m.role, answer: m.content })),
     });
-    return response.response;
+    // The chat interface now expects the full object to handle suggested actions.
+    return response;
   };
 
   const initialMessage = `Hello ${firstName}, I'm your AI wellness assistant. How are you feeling right now?`;
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
+    <div className="mx-auto w-full max-w-3xl h-full">
         <ChatInterface
             title="AI Wellness Assistant"
             description="Your personal guide to well-being. How can I help you today?"

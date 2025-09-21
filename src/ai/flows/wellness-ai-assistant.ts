@@ -15,47 +15,48 @@ import {z} from 'genkit';
 const WellnessAssistantInputSchema = z.object({
   userInput: z.string().describe('The user input message.'),
   k10Score: z.number().optional().describe('The user K-10 score, if available.'),
-  pastResponses: z.array(z.object({
-    question: z.string(),
-    answer: z.string(),
-  })).optional().describe('A list of past questions and answers in the conversation.'),
+  pastResponses: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+      })
+    )
+    .optional()
+    .describe('A list of past questions and answers in the conversation.'),
 });
 export type WellnessAssistantInput = z.infer<typeof WellnessAssistantInputSchema>;
 
 const WellnessAssistantOutputSchema = z.object({
-  response: z.string().describe('The AI assistant response to the user input.'),
-  suggestedAction: z.string().optional().describe('A suggested action or feature to redirect the user to.'),
+  response: z
+    .string()
+    .describe('The AI assistant response to the user input.'),
+  suggestedAction: z
+    .enum([
+      'wellness-assistant',
+      'relaxation-entertainment',
+      'talk-to-loved-ones',
+      'appointments',
+      'none',
+    ])
+    .optional()
+    .describe('A suggested feature to redirect the user to.'),
 });
 export type WellnessAssistantOutput = z.infer<typeof WellnessAssistantOutputSchema>;
-
-const incorporateUserDataTool = ai.defineTool({
-  name: 'incorporateUserData',
-  description: 'Decides whether and how to incorporate user data such as K10 score and past responses into the assistant reply.',
-  inputSchema: z.object({
-    shouldIncorporateK10Score: z.boolean().describe('Whether to incorporate the K-10 score in the response.'),
-    shouldIncorporatePastResponses: z.boolean().describe('Whether to incorporate past responses in the response.'),
-  }),
-  outputSchema: z.object({
-    incorporateK10Score: z.boolean().describe('Whether to incorporate the K-10 score.'),
-    incorporatePastResponses: z.boolean().describe('Whether to incorporate past responses.'),
-  }),
-},
-async (input) => {
-  // Implement the logic to decide whether to incorporate user data
-  return {
-    incorporateK10Score: input.shouldIncorporateK10Score,
-    incorporatePastResponses: input.shouldIncorporatePastResponses,
-  };
-});
-
 
 const wellnessAssistantPrompt = ai.definePrompt({
   name: 'wellnessAssistantPrompt',
   input: {schema: WellnessAssistantInputSchema},
   output: {schema: WellnessAssistantOutputSchema},
-  tools: [incorporateUserDataTool],
   prompt: `You are a friendly and empathetic Wellness AI Assistant.
   Your goal is to provide simple, short, and supportive responses in natural, everyday language. Keep your answers to just a couple of sentences.
+  Analyze the user's message and the conversation history to understand their needs.
+
+  Based on their input, you can suggest one of the following features if it seems helpful. Only suggest one at a time.
+  - 'relaxation-entertainment': If the user seems stressed, bored, or in need of a distraction.
+  - 'talk-to-loved-ones': If the user expresses feelings of loneliness or wants to connect with someone.
+  - 'appointments': If the user expresses a need for professional help or wants to talk to a person.
+  - 'none': If no specific action is relevant, or if you are just having a general conversation.
 
   Here is the user's input: {{{userInput}}}
 
@@ -84,6 +85,8 @@ const wellnessAssistantFlow = ai.defineFlow(
   }
 );
 
-export async function wellnessAssistant(input: WellnessAssistantInput): Promise<WellnessAssistantOutput> {
+export async function wellnessAssistant(
+  input: WellnessAssistantInput
+): Promise<WellnessAssistantOutput> {
   return wellnessAssistantFlow(input);
 }

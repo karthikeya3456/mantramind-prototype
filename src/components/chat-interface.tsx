@@ -20,7 +20,7 @@ type ChatInterfaceProps = {
   description: string;
   initialMessage: string;
   // A function that takes user input and past messages, and returns the AI's response.
-  aiFlow: (input: string, pastMessages: Message[]) => Promise<string>;
+  aiFlow: (input: string, pastMessages: Message[]) => Promise<any>;
   headerContent?: React.ReactNode;
 };
 
@@ -48,8 +48,17 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
 
     try {
       const pastMessages = [...messages, userMessage];
-      const aiResponse = await aiFlow(input, pastMessages);
+      const aiResult = await aiFlow(input, pastMessages);
+
+      const aiResponse = typeof aiResult === 'string' ? aiResult : aiResult.response;
+      
       setMessages((prev) => [...prev, { role: 'assistant', content: aiResponse }]);
+
+      // Here you could handle the suggestedAction, e.g. show a button or link
+      if (aiResult.suggestedAction && aiResult.suggestedAction !== 'none') {
+        console.log("Suggested Action:", aiResult.suggestedAction);
+      }
+
     } catch (error) {
       console.error(error);
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
@@ -68,7 +77,7 @@ export function ChatInterface({ title, description, initialMessage, aiFlow, head
   };
 
   return (
-    <Card className="flex flex-col h-[calc(100vh-10rem)] max-h-[800px]">
+    <Card className="flex flex-col h-full max-h-[calc(100vh-8rem)] w-full">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
