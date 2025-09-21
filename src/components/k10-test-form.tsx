@@ -85,11 +85,12 @@ export function K10TestForm() {
 
   const handleAnswerSelect = (value: string) => {
     form.setValue(`answers.${currentQuestion}`, value, { shouldValidate: true });
-    setTimeout(() => {
-      if (currentQuestion < K10_QUESTIONS.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-      }
-    }, 200);
+  };
+  
+  const handleNext = () => {
+    if (currentQuestion < K10_QUESTIONS.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    }
   };
 
   const handleBack = () => {
@@ -149,8 +150,19 @@ export function K10TestForm() {
                     Back
                 </Button>
             ) : <div />}
-             {currentQuestion === K10_QUESTIONS.length - 1 && form.getValues('answers')[currentQuestion] && (
-                <Button type="submit" disabled={loading} className="ml-auto">
+             {currentQuestion < K10_QUESTIONS.length - 1 && (
+                <Button 
+                    type="button" 
+                    onClick={handleNext} 
+                    disabled={!form.getValues('answers')[currentQuestion]} 
+                    className="ml-auto"
+                >
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            )}
+             {currentQuestion === K10_QUESTIONS.length - 1 && (
+                <Button type="submit" disabled={loading || !form.getValues('answers')[currentQuestion]} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Go to Assistant
                     <ArrowRight className="ml-2 h-4 w-4" />
