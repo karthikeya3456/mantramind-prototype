@@ -18,11 +18,17 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       const checkK10Status = async () => {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().k10?.completedAt) {
-          router.push('/dashboard');
-        } else {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists() && userDoc.data().k10?.completedAt) {
+            router.push('/dashboard');
+          } else {
+            router.push('/k10-test');
+          }
+        } catch (error) {
+          console.error("Error checking K10 status:", error);
+          // Fallback to K10 test if there's an error
           router.push('/k10-test');
         }
       };

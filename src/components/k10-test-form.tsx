@@ -56,7 +56,6 @@ export function K10TestForm() {
     try {
       const answersAsNumbers = values.answers.map(Number);
       
-      // Save results to Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
         k10: {
@@ -65,7 +64,6 @@ export function K10TestForm() {
         }
       }, { merge: true });
       
-      // Analyze results with AI in the background, but don't wait for it.
       analyzeK10TestResults({ answers: answersAsNumbers }).then(aiResult => {
           setDoc(userDocRef, {
               k10: {
@@ -74,7 +72,6 @@ export function K10TestForm() {
           }, { merge: true });
       });
 
-      // Redirect to the wellness assistant
       router.push('/wellness-assistant');
 
     } catch (e) {
@@ -88,7 +85,6 @@ export function K10TestForm() {
     form.setValue(`answers.${currentQuestion}`, value);
     const isValid = await form.trigger(`answers.${currentQuestion}`);
     if (isValid) {
-      // Add a small delay for a smoother transition
       setTimeout(() => {
         if (currentQuestion < K10_QUESTIONS.length - 1) {
           setCurrentQuestion(currentQuestion + 1);
@@ -104,6 +100,7 @@ export function K10TestForm() {
   }
   
   const progress = ((currentQuestion + 1) / K10_QUESTIONS.length) * 100;
+  const currentAnswer = form.watch(`answers.${currentQuestion}`);
 
   return (
     <Card>
@@ -126,7 +123,7 @@ export function K10TestForm() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={handleAnswerSelect}
-                        value={field.value}
+                        value={currentAnswer}
                         className="flex flex-col space-y-2 pt-2"
                       >
                         {K10_OPTIONS.map((option) => (
