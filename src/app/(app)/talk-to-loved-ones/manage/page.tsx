@@ -54,7 +54,7 @@ export default function ManageLovedOnesPage() {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,32 +73,32 @@ export default function ManageLovedOnesPage() {
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        reset({ lovedOnes: data.lovedOnes || [] });
+        if (data.lovedOnes) {
+            reset({ lovedOnes: data.lovedOnes });
+        }
       }
       setLoading(false);
     });
     return () => unsubscribe();
   }, [user, reset]);
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
+  const onSubmit: SubmitHandler<FormData> = (data) => {
     if (!user) {
         toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
         return;
     }
-    setIsSaving(true);
     
-    toast({ title: "Saving...", description: "Your changes are being saved in the background." });
-
-    try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true });
-        toast({ title: "Success", description: "Your loved ones have been saved." });
-    } catch (error: any) {
-        console.error("Error saving loved ones:", error);
-        toast({ title: "Error", description: "Failed to save. Please try again.", variant: "destructive" });
-    } finally {
-        setIsSaving(false);
-    }
+    // Provide immediate feedback to the user
+    toast({ title: "Success", description: "Your loved ones have been saved." });
+    
+    // Perform the save operation in the background
+    const userDocRef = doc(db, 'users', user.uid);
+    setDoc(userDocRef, { lovedOnes: data.lovedOnes }, { merge: true })
+        .catch((error: any) => {
+            console.error("Error saving loved ones in background:", error);
+            // Optionally, inform the user if the background save failed
+            toast({ title: "Save Failed", description: "Your changes could not be saved in the background. Please try again.", variant: "destructive" });
+        });
   };
 
   const addLovedOne = () => {
@@ -214,8 +214,7 @@ export default function ManageLovedOnesPage() {
             <Button type="button" variant="outline" onClick={addLovedOne}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Another Loved One
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={!isDirty}>
               Save Changes
             </Button>
           </div>
