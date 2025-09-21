@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Logo from '@/components/logo';
@@ -44,6 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [testCompleted, setTestCompleted] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -52,9 +53,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
-  }, [user, loading, router]);
+    const checkTestCompletion = async () => {
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const hasCompletedTest = userDoc.exists() && !!userDoc.data().k10?.answers;
+        setTestCompleted(hasCompletedTest);
 
-  if (loading || !user) {
+        if (pathname === '/k10-test' && hasCompletedTest) {
+          router.push('/dashboard');
+        } else if (!hasCompletedTest && pathname !== '/k10-test' && pathname !== '/welcome/profile') {
+           // If test is not completed, they should be on k10-test page or profile page.
+           // This prevents access to other pages before completing the test.
+           router.push('/k10-test');
+        }
+      }
+    };
+
+    checkTestCompletion();
+
+  }, [user, loading, router, pathname]);
+
+  if (loading || testCompleted === null || !user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex items-center space-x-2">

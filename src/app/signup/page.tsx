@@ -16,7 +16,8 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (user) {
-            router.push('/k10-test');
+            // For new signups, always go to profile setup first, then to the test.
+            router.push('/welcome/profile');
         }
     }, [user, router]);
     

@@ -58,7 +58,7 @@ export function K10TestForm() {
       const userDocRef = doc(db, 'users', user.uid);
       
       // Redirect immediately for a faster user experience.
-      router.push('/wellness-assistant');
+      router.push('/dashboard');
 
       // Save answers and trigger AI analysis in the background.
       setDoc(userDocRef, {
@@ -166,7 +166,7 @@ export function K10TestForm() {
              {currentQuestion === K10_QUESTIONS.length - 1 && (
                 <Button type="submit" disabled={loading || !form.getValues('answers')[currentQuestion]} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Go to Assistant
+                    Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
