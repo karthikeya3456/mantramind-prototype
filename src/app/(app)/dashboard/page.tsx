@@ -3,18 +3,12 @@
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
-  LayoutDashboard,
-  ClipboardCheck,
   BotMessageSquare,
-  Wind,
-  Youtube,
+  Sparkles,
   HeartHandshake,
   CalendarPlus,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 
 const features = [
@@ -23,28 +17,24 @@ const features = [
     description: 'Chat with our wellness bot.',
     href: '/wellness-assistant',
     icon: BotMessageSquare,
-    image_id: 'dashboard-assistant',
   },
   {
     title: 'Relax & Entertain',
     description: 'Music, videos, and more.',
     href: '/relaxation-entertainment',
     icon: Sparkles,
-    image_id: 'dashboard-relax-entertain',
   },
   {
     title: 'Talk to Loved Ones',
     description: 'Simulate a chat with loved ones.',
     href: '/talk-to-loved-ones',
     icon: HeartHandshake,
-    image_id: 'dashboard-loved-ones',
   },
   {
     title: 'Appointments',
     description: 'Book a session with a professional.',
     href: '/appointments',
     icon: CalendarPlus,
-    image_id: 'dashboard-appointments',
   },
 ];
 
@@ -62,38 +52,24 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {features.map((feature) => {
-          const image = PlaceHolderImages.find((img) => img.id === feature.image_id);
-          return (
+        {features.map((feature) => (
             <Link href={feature.href} key={feature.title} className="group">
-              <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                <CardHeader className="p-0">
-                  {image && (
-                    <div className="aspect-video overflow-hidden">
-                      <Image
-                        src={image.imageUrl}
-                        alt={image.description}
-                        width={600}
-                        height={400}
-                        data-ai-hint={image.imageHint}
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6 pb-2">
-                    <CardTitle className="flex items-center justify-between text-xl font-headline">
-                      {feature.title}
+              <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+                <CardHeader>
+                    <CardTitle className="flex items-start justify-between text-xl font-headline">
+                        <div className="flex items-center gap-3">
+                            <feature.icon className="h-6 w-6" />
+                            {feature.title}
+                        </div>
                       <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1" />
                     </CardTitle>
-                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-grow">
                   <p className="text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             </Link>
-          );
-        })}
+          ))}
       </div>
     </div>
   );
