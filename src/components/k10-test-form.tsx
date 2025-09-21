@@ -147,13 +147,13 @@ export function K10TestForm() {
               />
           </CardContent>
           <CardFooter className="flex justify-between">
-            {currentQuestion > 0 && (
+            {currentQuestion > 0 ? (
                 <Button type="button" variant="outline" onClick={handleBack} disabled={loading}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                 </Button>
-            )}
-             {currentQuestion === K10_QUESTIONS.length - 1 && (
+            ) : <div />}
+             {currentQuestion === K10_QUESTIONS.length - 1 && form.getValues('answers')[currentQuestion] && (
                 <Button type="submit" disabled={loading} className="ml-auto">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Go to Assistant
