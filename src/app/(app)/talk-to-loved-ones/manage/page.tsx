@@ -33,6 +33,7 @@ const lovedOneSchema = z.object({
     id: z.string(),
     name: z.string().min(2, 'Name must be at least 2 characters.'),
     relationship: z.string().min(2, 'Relationship must be at least 2 characters.'),
+    greeting: z.string().min(5, 'Greeting must be at least 5 characters.').default("Hello there, it's so good to hear from you."),
     characteristics: z.string().min(20, 'Please provide at least 20 characters to describe their traits.'),
 });
 
@@ -108,7 +109,7 @@ export default function ManageLovedOnesPage() {
   };
 
   const addLovedOne = () => {
-    append({ id: uuidv4(), name: '', relationship: '', characteristics: '' });
+    append({ id: uuidv4(), name: '', relationship: '', greeting: '', characteristics: '' });
   };
   
   if (loading) {
@@ -169,6 +170,17 @@ export default function ManageLovedOnesPage() {
                       )}
                     </div>
                   </div>
+                  <div className="space-y-2">
+                      <Label htmlFor={`lovedOnes.${index}.greeting`}>Greeting</Label>
+                      <Input
+                        id={`lovedOnes.${index}.greeting`}
+                        placeholder="e.g., Hello my dear, how have you been?"
+                        {...register(`lovedOnes.${index}.greeting`)}
+                      />
+                      {errors.lovedOnes?.[index]?.greeting && (
+                        <p className="text-sm text-destructive">{errors.lovedOnes?.[index]?.greeting?.message}</p>
+                      )}
+                    </div>
                   <div className="space-y-2">
                     <Label htmlFor={`lovedOnes.${index}.characteristics`}>Characteristics & Traits</Label>
                     <Textarea

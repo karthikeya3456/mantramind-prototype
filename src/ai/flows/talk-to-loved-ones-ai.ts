@@ -14,6 +14,7 @@ const TalkToLovedOneInputSchema = z.object({
   lovedOne: z.object({
     name: z.string(),
     relationship: z.string(),
+    greeting: z.string(),
     characteristics: z.string(),
   }),
   userMessage: z.string().describe('The user message to send to the AI-simulated loved one.'),

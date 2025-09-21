@@ -15,6 +15,7 @@ export type LovedOne = {
   id: string;
   name: string;
   relationship: string;
+  greeting: string;
   characteristics: string;
 };
 
@@ -46,6 +47,7 @@ export default function TalkToLovedOnesPage() {
       lovedOne: {
         name: selectedLovedOne.name,
         relationship: selectedLovedOne.relationship,
+        greeting: selectedLovedOne.greeting,
         characteristics: selectedLovedOne.characteristics,
       },
       userMessage: input,
@@ -59,7 +61,7 @@ export default function TalkToLovedOnesPage() {
         <ChatInterface
           title={`Chat with ${selectedLovedOne.name}`}
           description={`A simulated conversation with your ${selectedLovedOne.relationship}.`}
-          initialMessage="Hello there, it's so good to hear from you."
+          initialMessage={selectedLovedOne.greeting || "Hello there, it's so good to hear from you."}
           aiFlow={handleAiFlow}
           headerContent={
             <Button variant="link" onClick={() => setSelectedLovedOne(null)} className="p-0 h-auto">
