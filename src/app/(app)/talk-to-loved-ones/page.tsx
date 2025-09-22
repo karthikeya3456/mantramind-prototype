@@ -39,12 +39,10 @@ export default function TalkToLovedOnesPage() {
     return () => unsubscribe();
   }, [user]);
 
-  const handleAiFlow = async (input: string, pastMessages: Message[]) => {
+  const handleAiFlow = async (input: string) => {
     if (!selectedLovedOne) {
       return { response: "I'm sorry, I don't have the information about your loved one." };
     }
-    // Take the last 4 messages (2 user, 2 assistant) for context.
-    const recentHistory = pastMessages.slice(-4);
     
     const response = await talkToLovedOne({
       lovedOne: {
@@ -54,7 +52,6 @@ export default function TalkToLovedOnesPage() {
         characteristics: selectedLovedOne.characteristics,
       },
       userMessage: input,
-      pastResponses: recentHistory,
     });
     // The ChatInterface component expects an object with a `response` property.
     return { response: response.aiResponse };

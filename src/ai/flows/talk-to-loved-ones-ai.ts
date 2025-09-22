@@ -20,15 +20,6 @@ const TalkToLovedOneInputSchema = z.object({
   userMessage: z
     .string()
     .describe('The user message to send to the AI-simulated loved one.'),
-  pastResponses: z
-    .array(
-      z.object({
-        role: z.enum(['user', 'assistant']),
-        content: z.string(),
-      })
-    )
-    .optional()
-    .describe('A list of past messages in the conversation.'),
 });
 export type TalkToLovedOneInput = z.infer<typeof TalkToLovedOneInputSchema>;
 
@@ -52,13 +43,6 @@ const prompt = ai.definePrompt({
   Their name is {{lovedOne.name}}.
   Their relationship to the user is: {{lovedOne.relationship}}.
   Here are their characteristics and traits: {{lovedOne.characteristics}}
-
-  {{#if pastResponses.length}}
-  Here is the recent conversation history:
-  {{#each pastResponses}}
-  {{#if (eq role "assistant")}}model{{else}}{{role}}{{/if}}: {{{content}}}
-  {{/each}}
-  {{/if}}
 
   Respond to the following message from the user as if you were that loved one. Do not break character. Keep your reply to just a few sentences at most.
   User's message: {{{userMessage}}}`,
