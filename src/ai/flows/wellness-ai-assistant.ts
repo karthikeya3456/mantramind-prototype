@@ -67,7 +67,10 @@ Based on their input, you can suggest ONE of the following features if it seems 
 Here is the user's input: {{{userInput}}}
 
 {{#if k10Score}}
-The user has completed a wellness test. A higher score indicates more distress. Use this information to gently guide the conversation, but DO NOT mention the score or the test itself in your response.
+The user has completed a wellness test.
+- A higher score (above 25) indicates more distress. Use this information to gently guide the conversation.
+- A lower score (25 or below) indicates a better state of mind. You can affirm this in a positive and supportive way.
+- DO NOT mention the score or the test itself in your response. Base your conversation on their message and this underlying context.
 {{/if}}
 
 {{#if pastResponses.length}}
