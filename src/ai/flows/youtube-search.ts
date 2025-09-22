@@ -28,32 +28,45 @@ const YoutubeVideoSchema = z.object({
 
 const YoutubeSearchOutputSchema = z.object({
   videos: z.array(YoutubeVideoSchema),
+  error: z.string().optional(),
 });
 export type YoutubeSearchOutput = z.infer<typeof YoutubeSearchOutputSchema>;
 
 async function search(input: YoutubeSearchInput): Promise<YoutubeSearchOutput> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
-    throw new Error('YOUTUBE_API_KEY environment variable is not set.');
+    return {
+      videos: [],
+      error: 'The YouTube API key is not configured. Please add YOUTUBE_API_KEY to your .env file.',
+    };
   }
 
-  const response = await youtube.search.list({
-    key: apiKey,
-    part: ['snippet'],
-    q: input.query,
-    type: ['video'],
-    maxResults: input.maxResults,
-    videoEmbeddable: 'true',
-  });
+  try {
+    const response = await youtube.search.list({
+      key: apiKey,
+      part: ['snippet'],
+      q: input.query,
+      type: ['video'],
+      maxResults: input.maxResults,
+      videoEmbeddable: 'true',
+    });
 
-  const videos = response.data.items?.map(item => ({
-    id: item.id?.videoId || '',
-    title: item.snippet?.title || '',
-    channelTitle: item.snippet?.channelTitle || '',
-    thumbnailUrl: item.snippet?.thumbnails?.high?.url || '',
-  })) || [];
+    const videos = response.data.items?.map(item => ({
+      id: item.id?.videoId || '',
+      title: item.snippet?.title || '',
+      channelTitle: item.snippet?.channelTitle || '',
+      thumbnailUrl: item.snippet?.thumbnails?.high?.url || '',
+    })) || [];
 
-  return { videos };
+    return { videos };
+  } catch (e: any) {
+    console.error('YouTube search failed:', e);
+    // Return a more user-friendly error if the API key is invalid or has issues.
+    if (e.message.includes('API key not valid')) {
+        return { videos: [], error: 'The configured YouTube API key is invalid. Please check your .env file.' };
+    }
+    return { videos: [], error: 'An unexpected error occurred while fetching videos from YouTube.' };
+  }
 }
 
 const searchTool = ai.defineTool(

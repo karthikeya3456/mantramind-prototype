@@ -3,19 +3,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Podcast, Clapperboard, Music, Timer, Loader2, Pause, RotateCcw } from 'lucide-react';
+import { Play, Podcast, Clapperboard, Music, Timer, Loader2, Pause, RotateCcw, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import { searchYoutubeVideos, YoutubeSearchOutput } from '@/ai/flows/youtube-search';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function RelaxationEntertainmentPage() {
   const [comedyVideos, setComedyVideos] = useState<YoutubeSearchOutput['videos']>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   const [musicVideos, setMusicVideos] = useState<YoutubeSearchOutput['videos']>([]);
   const [loadingMusic, setLoadingMusic] = useState(true);
+  const [musicError, setMusicError] = useState<string | null>(null);
 
   const [podcastVideos, setPodcastVideos] = useState<YoutubeSearchOutput['videos']>([]);
   const [loadingPodcasts, setLoadingPodcasts] = useState(true);
+  const [podcastError, setPodcastError] = useState<string | null>(null);
   
   // Meditation Timer State
   const [duration, setDuration] = useState(10 * 60); // default 10 minutes in seconds
@@ -31,9 +35,14 @@ export default function RelaxationEntertainmentPage() {
       try {
         setLoadingVideos(true);
         const comedyResults = await searchYoutubeVideos({ query: 'stand up comedy', maxResults: 3 });
-        setComedyVideos(comedyResults.videos);
+        if (comedyResults.error) {
+            setVideoError(comedyResults.error);
+        } else {
+            setComedyVideos(comedyResults.videos);
+        }
       } catch (error) {
         console.error("Failed to fetch YouTube comedy videos:", error);
+        setVideoError("An unexpected error occurred while fetching videos.");
       } finally {
         setLoadingVideos(false);
       }
@@ -42,9 +51,14 @@ export default function RelaxationEntertainmentPage() {
       try {
         setLoadingMusic(true);
         const musicResults = await searchYoutubeVideos({ query: 'calming meditation music', maxResults: 3 });
-        setMusicVideos(musicResults.videos);
+        if (musicResults.error) {
+            setMusicError(musicResults.error);
+        } else {
+            setMusicVideos(musicResults.videos);
+        }
       } catch (error) {
         console.error("Failed to fetch YouTube music videos:", error);
+        setMusicError("An unexpected error occurred while fetching music.");
       } finally {
         setLoadingMusic(false);
       }
@@ -53,15 +67,72 @@ export default function RelaxationEntertainmentPage() {
       try {
         setLoadingPodcasts(true);
         const podcastResults = await searchYoutubeVideos({ query: 'motivational podcasts', maxResults: 3 });
-        setPodcastVideos(podcastResults.videos);
+        if (podcastResults.error) {
+            setPodcastError(podcastResults.error);
+        } else {
+            setPodcastVideos(podcastResults.videos);
+        }
       } catch (error) {
         console.error("Failed to fetch YouTube podcast videos:", error);
+        setPodcastError("An unexpected error occurred while fetching podcasts.");
       } finally {
         setLoadingPodcasts(false);
       }
     }
     fetchContent();
   }, []);
+  
+  // Helper to render video content, loader, or error state
+  const renderVideoSection = (loading: boolean, error: string | null, videos: YoutubeSearchOutput['videos']) => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center col-span-3 min-h-[200px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
+    if (error) {
+      return (
+         <div className="col-span-3">
+             <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Content Unavailable</AlertTitle>
+                <AlertDescription>
+                    {error} To fix this, get a YouTube Data API v3 key from the Google Cloud Console and add it to the `.env` file.
+                </AlertDescription>
+            </Alert>
+         </div>
+      );
+    }
+    return videos.map((video) => (
+      <a 
+        key={video.id} 
+        href={`https://www.youtube.com/watch?v=${video.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group"
+      >
+        <Card className="overflow-hidden h-full">
+          <div className="aspect-video relative">
+            <Image
+                src={video.thumbnailUrl}
+                alt={video.title}
+                fill
+                className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Play className="h-12 w-12 text-white fill-white"/>
+            </div>
+          </div>
+          <div className="p-4">
+            <h3 className="font-semibold truncate">{video.title}</h3>
+            <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
+          </div>
+        </Card>
+      </a>
+    ));
+  };
+
 
   // Meditation Timer Effects
   useEffect(() => {
@@ -128,39 +199,7 @@ export default function RelaxationEntertainmentPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {loadingMusic ? (
-            <div className="flex items-center justify-center col-span-3 min-h-[200px]">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            musicVideos.map((video) => (
-              <a 
-                key={video.id} 
-                href={`https://www.youtube.com/watch?v=${video.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
-              >
-                <Card className="overflow-hidden h-full">
-                  <div className="aspect-video relative">
-                    <Image
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play className="h-12 w-12 text-white fill-white"/>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold truncate">{video.title}</h3>
-                    <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
-                  </div>
-                </Card>
-              </a>
-            ))
-          )}
+          {renderVideoSection(loadingMusic, musicError, musicVideos)}
         </CardContent>
       </Card>
       
@@ -172,39 +211,7 @@ export default function RelaxationEntertainmentPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {loadingVideos ? (
-            <div className="flex items-center justify-center col-span-3 min-h-[200px]">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            comedyVideos.map((video) => (
-              <a 
-                key={video.id} 
-                href={`https://www.youtube.com/watch?v=${video.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
-              >
-                <Card className="overflow-hidden h-full">
-                  <div className="aspect-video relative">
-                    <Image
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play className="h-12 w-12 text-white fill-white"/>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold truncate">{video.title}</h3>
-                    <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
-                  </div>
-                </Card>
-              </a>
-            ))
-          )}
+          {renderVideoSection(loadingVideos, videoError, comedyVideos)}
         </CardContent>
       </Card>
 
@@ -216,39 +223,7 @@ export default function RelaxationEntertainmentPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-           {loadingPodcasts ? (
-            <div className="flex items-center justify-center col-span-3 min-h-[200px]">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            podcastVideos.map((video) => (
-              <a 
-                key={video.id} 
-                href={`https://www.youtube.com/watch?v=${video.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
-              >
-                <Card className="overflow-hidden h-full">
-                  <div className="aspect-video relative">
-                    <Image
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play className="h-12 w-12 text-white fill-white"/>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold truncate">{video.title}</h3>
-                    <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
-                  </div>
-                </Card>
-              </a>
-            ))
-          )}
+           {renderVideoSection(loadingPodcasts, podcastError, podcastVideos)}
         </CardContent>
       </Card>
       
