@@ -23,17 +23,28 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https' as const,
+        hostname: 'i.ytimg.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https' as const,
         hostname: 'i.ytimg.com',
         port: '',
         pathname: '/**',
       }
+    ],
+  },
+  experimental: {
+    allowedDevOrigins: [
+      'https://6000-firebase-studio-1758446785028.cluster-73qgvk7hjjadkrjeyexca5ivva.cloudworkstations.dev',
     ],
   },
 };
