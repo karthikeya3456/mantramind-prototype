@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChatInterface } from '@/components/chat-interface';
+import { ChatInterface, Message } from '@/components/chat-interface';
 import { talkToLovedOne } from '@/ai/flows/talk-to-loved-ones-ai';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,10 +39,13 @@ export default function TalkToLovedOnesPage() {
     return () => unsubscribe();
   }, [user]);
 
-  const handleAiFlow = async (input: string) => {
+  const handleAiFlow = async (input: string, pastMessages: Message[]) => {
     if (!selectedLovedOne) {
       return { response: "I'm sorry, I don't have the information about your loved one." };
     }
+    // Take the last 4 messages (2 user, 2 assistant) for context.
+    const recentHistory = pastMessages.slice(-4);
+    
     const response = await talkToLovedOne({
       lovedOne: {
         name: selectedLovedOne.name,
@@ -51,6 +54,7 @@ export default function TalkToLovedOnesPage() {
         characteristics: selectedLovedOne.characteristics,
       },
       userMessage: input,
+      pastResponses: recentHistory,
     });
     // The ChatInterface component expects an object with a `response` property.
     return { response: response.aiResponse };
