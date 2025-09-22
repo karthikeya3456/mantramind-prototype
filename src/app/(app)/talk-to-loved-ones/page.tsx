@@ -41,7 +41,7 @@ export default function TalkToLovedOnesPage() {
 
   const handleAiFlow = async (input: string) => {
     if (!selectedLovedOne) {
-        return "I'm sorry, I don't have the information about your loved one.";
+      return { response: "I'm sorry, I don't have the information about your loved one." };
     }
     const response = await talkToLovedOne({
       lovedOne: {
@@ -52,7 +52,8 @@ export default function TalkToLovedOnesPage() {
       },
       userMessage: input,
     });
-    return response.aiResponse;
+    // The ChatInterface component expects an object with a `response` property.
+    return { response: response.aiResponse };
   };
   
   if (selectedLovedOne) {
